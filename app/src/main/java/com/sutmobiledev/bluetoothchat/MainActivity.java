@@ -8,11 +8,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -23,8 +23,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Set;
-
-import info.devexchanges.bluetoothchatapp.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -141,8 +139,8 @@ public class MainActivity extends AppCompatActivity {
         discoveredDevicesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
 
         //locate listviews and attatch the adapters
-        ListView listView = (ListView) dialog.findViewById(R.id.pairedDeviceList);
-        ListView listView2 = (ListView) dialog.findViewById(R.id.discoveredDeviceList);
+        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
+        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
         listView.setAdapter(pairedDevicesAdapter);
         listView2.setAdapter(discoveredDevicesAdapter);
 
@@ -215,10 +213,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void findViewsByIds() {
-        status = (TextView) findViewById(R.id.status);
-        btnConnect = (Button) findViewById(R.id.btn_connect);
-        listView = (ListView) findViewById(R.id.list);
-        inputLayout = (TextInputLayout) findViewById(R.id.input_layout);
+        status = findViewById(R.id.status);
+        btnConnect = findViewById(R.id.btn_connect);
+        listView = findViewById(R.id.list);
+        inputLayout = findViewById(R.id.input_layout);
         View btnSend = findViewById(R.id.btn_send);
 
         btnSend.setOnClickListener(new View.OnClickListener() {
