@@ -21,6 +21,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -41,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     public static final int MESSAGE_DEVICE_OBJECT = 4;
     public static final int MESSAGE_TOAST = 5;
     public static final String DEVICE_OBJECT = "device_name";
+
+    public static final String SEND_MESSAGE = "message";
+    public static final String SEND_FILE = "file";
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private ChatController chatController;
@@ -252,8 +258,49 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (message.length() > 0) {
-            byte[] send = message.getBytes();
+            byte[] send = SEND_MESSAGE.getBytes();
             chatController.write(send);
+
+            send = message.getBytes();
+            chatController.write(send);
+        }
+    }
+
+    private void sendFile(String file_name, String type) {
+        if (chatController.getState() != ChatController.STATE_CONNECTED) {
+            Toast.makeText(this, "Connection was lost!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File out = new File(file_name);
+        if (out.length() > 0) {
+            // Message type
+            byte[] send = SEND_FILE.getBytes();
+            chatController.write(send);
+
+            // length
+            send = String.valueOf(out.length()).getBytes();
+            chatController.write(send);
+
+            // file type
+            send = type.getBytes();
+            chatController.write(send);
+
+            // file name
+            send = file_name.getBytes();
+            chatController.write(send);
+
+            // content
+            try {
+                send = new byte[64 * 1024];
+                FileInputStream fin = new FileInputStream(out);
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 64 * 1024);
+
+                while ((bufferedInputStream.read(send)) != -1)
+                    chatController.write(send);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
