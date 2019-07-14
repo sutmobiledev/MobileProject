@@ -7,13 +7,19 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+
+import static android.content.ContentValues.TAG;
 
 public class ChatController {
     private static final String APP_NAME = "BluetoothChatApp";
@@ -306,24 +312,114 @@ public class ChatController {
         }
 
         public void run() {
-            byte[] buffer = new byte[1024];
-            int bytes;
-
+            //TODO
             // Keep listening to the InputStream
             while (true) {
+                byte[] buffer = new byte[1024];
+                int bytes;
                 try {
                     // Read from the InputStream
-                    bytes = inputStream.read(buffer);
+                    try {
+                        bytes = inputStream.read(buffer);
+                    } catch (IOException e) {
+                        connectionLost();
+                        // Start the service over to restart listening mode
+                        ChatController.this.start();
+                        break;
+                    }
+                    String code = new String(buffer);
+                    if(code == "message") {
+                        byte[] buffer_read = new byte[1024];
+                        int nbytes;
+                        try {
+                            nbytes = inputStream.read(buffer_read);
+                        }catch (IOException e) {
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
 
-                    // Send the obtained bytes to the UI Activity
-                    handler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1,
-                            buffer).sendToTarget();
+                        // Send the obtained bytes to the UI Activity
+                        handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1,
+                                buffer).sendToTarget();
+                    }
+                    else if(code == "file"){
+                        byte[] buffer_Length = new byte[1024];
+                        try {
+                            inputStream.read(buffer_Length);
+                        } catch (IOException e) {
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+                        int length = Integer.parseInt(new String(buffer_Length));
+                        byte[] buffer_Type = new byte[1024];
+                        try {
+                            inputStream.read(buffer_Type);
+                        } catch (IOException e) {
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+                        String type = new String(buffer_Type);
+                        byte[] buffer_Name = new byte[1024];
+                        try {
+                            inputStream.read(buffer_Name);
+                        } catch (IOException e) {
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+                        String name = new String(buffer_Name);
+                        // Create output streams & write to file
+                        FileOutputStream fos = new FileOutputStream(
+                                Environment.getExternalStorageDirectory()
+                                        + "/"+name);
+                        int bytesRead;
+                        int current = 0;
+                        try {
+                            bytesRead = inputStream.read(buffer, 0, buffer.length);
+                            Log.d(TAG, "bytesRead first time =" + bytesRead);
+                            current = bytesRead;
+
+                            do {
+                                Log.d(TAG, "do-while -- current: " + current);
+                                bytesRead = inputStream.read(buffer, current,
+                                        buffer.length - current);
+                                Log.d(TAG, "bytesRead: =" + bytesRead);
+
+                                if (bytesRead >= 0)
+                                    current += bytesRead;
+                            } while (bytesRead > -1);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Log.d(TAG, "do while end:-- buffer len= "
+                                    + buffer.length + "  current: " + current);
+
+                            fos.write(buffer);
+                            Log.d(TAG, "fos.write success! buffer: "
+                                    + buffer.length + "  current: " + current);
+
+                            fos.flush();
+                            fos.close();
+                        }
+                    }
+
+                    } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 } catch (IOException e) {
-                    connectionLost();
-                    // Start the service over to restart listening mode
-                    ChatController.this.start();
-                    break;
+                    e.printStackTrace();
                 }
+//                catch (IOException e) {
+//                    connectionLost();
+//                    // Start the service over to restart listening mode
+//                    ChatController.this.start();
+//                    break;
+//                }
             }
         }
 
