@@ -415,4 +415,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+    public void make_toast(){
+        Toast.makeText(this, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
+    }
 }

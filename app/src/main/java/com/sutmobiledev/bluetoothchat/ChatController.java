@@ -11,7 +11,11 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +35,7 @@ public class ChatController {
     private ConnectThread connectThread;
     private ReadWriteThread connectedThread;
     private int state;
+    private MainActivity mainActivity;
 
     static final int STATE_NONE = 0;
     static final int STATE_LISTEN = 1;
@@ -40,7 +45,7 @@ public class ChatController {
     public ChatController(Context context, Handler handler) {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         state = STATE_NONE;
-
+        mainActivity = (MainActivity) context;
         this.handler = handler;
     }
 
@@ -317,7 +322,7 @@ public class ChatController {
             while (true) {
                 byte[] buffer = new byte[1024];
                 int bytes;
-                try {
+//                try {
                     // Read from the InputStream
                     try {
                         bytes = inputStream.read(buffer);
@@ -376,9 +381,9 @@ public class ChatController {
                         }
                         String name = new String(buffer_Name);
                         // Create output streams & write to file
-                        FileOutputStream fos = new FileOutputStream(
-                                Environment.getExternalStorageDirectory()
-                                        + "/"+name);
+//                        FileOutputStream fos = new FileOutputStream(
+//                                Environment.getExternalStorageDirectory()
+//                                        + "/"+name);
                         int bytesRead;
                         int current = 0;
                         try {
@@ -395,25 +400,25 @@ public class ChatController {
                                 if (bytesRead >= 0)
                                     current += bytesRead;
                             } while (bytesRead > -1);
+
                         } catch (IOException e) {
                             e.printStackTrace();
                             Log.d(TAG, "do while end:-- buffer len= "
                                     + buffer.length + "  current: " + current);
 
-                            fos.write(buffer);
+//                            fos.write(buffer);
+                            save_file(name,buffer);
                             Log.d(TAG, "fos.write success! buffer: "
                                     + buffer.length + "  current: " + current);
 
-                            fos.flush();
-                            fos.close();
+//                            fos.flush();
+//                            fos.close();
                         }
                     }
 
-                    } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                    } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
 //                catch (IOException e) {
 //                    connectionLost();
 //                    // Start the service over to restart listening mode
@@ -439,6 +444,84 @@ public class ChatController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+        public void save_file(String name,byte[] bytes){
+            File apkStorage = null;
+            File outputFile = null;
+            if (new CheckForSDCard().isSDCardPresent()) {
+
+                apkStorage = new File(
+                        Environment.getExternalStorageDirectory() + "/Download"
+                );
+            } else
+                mainActivity.make_toast();
+
+            //If File is not present create directory
+            if (!apkStorage.exists()) {
+                apkStorage.mkdir();
+                Log.e("tag", "Directory Created.");
+            }
+
+            outputFile = new File(apkStorage, name);//Create Output file in Main File
+
+            //Create New File if not present
+            if (!outputFile.exists()) {
+                try {
+                    outputFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Log.e("tag", "File Created");
+            }
+
+            FileOutputStream fos = null;//Get OutputStream for NewFile Location
+            try {
+                fos = new FileOutputStream(outputFile);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+//                InputStream is = c.getInputStream();//Get InputStream for connection
+//                byte[] buffer = new byte[1024];//Set buffer type
+//                int len1 = 0;//init length
+//            File file = new File("/sdcard/Download/annie-spratt-01Wa3tPoQQ8-unsplash.jpg");
+//            int size = (int) file.length();
+//            byte[] bytes = new byte[size];
+//            try {
+//                BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
+//                buf.read(bytes, 0, bytes.length);
+//                buf.close();
+//            } catch (FileNotFoundException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//                File fi = new File("/Users/sana/Desktop/here");
+//                byte[] fileContent = null;
+//                try {
+//                    fileContent = Files.readAllBytes(fi.toPath());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+
+            try {
+                fos.write(bytes, 0, bytes.length);//Write new file
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            //Close all connection after doing task
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+//                is.close();
+//
+
         }
     }
 }
