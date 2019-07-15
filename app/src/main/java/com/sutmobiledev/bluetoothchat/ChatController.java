@@ -384,30 +384,44 @@ public class ChatController {
 //                        FileOutputStream fos = new FileOutputStream(
 //                                Environment.getExternalStorageDirectory()
 //                                        + "/"+name);
+                        byte[] buffer_file = new byte[8*1024];
                         int bytesRead;
                         int current = 0;
                         try {
-                            bytesRead = inputStream.read(buffer, 0, buffer.length);
+                            if(length > 8*1024) {
+                                bytesRead = inputStream.read(buffer_file, 0, 8*1024);
+                            }
+                            else{
+                                bytesRead = inputStream.read(buffer_file, 0, length);
+                            }
                             Log.d(TAG, "bytesRead first time =" + bytesRead);
                             current = bytesRead;
+                            save_file(name,buffer_file);
 
-                            do {
+                            while (length - current > 0) {
+                                buffer_file = new byte[8*1024];
                                 Log.d(TAG, "do-while -- current: " + current);
-                                bytesRead = inputStream.read(buffer, current,
-                                        buffer.length - current);
+                                if(length - current > 8*1024) {
+                                    bytesRead = inputStream.read(buffer_file, 0,
+                                            8*1024);
+                                }
+                                else{
+                                    bytesRead = inputStream.read(buffer_file, 0,
+                                            length-current);
+                                }
                                 Log.d(TAG, "bytesRead: =" + bytesRead);
 
                                 if (bytesRead >= 0)
                                     current += bytesRead;
-                            } while (bytesRead > -1);
-
+                                save_file(name,buffer_file);
+                            }
+//                            save_file(name,buffer);
                         } catch (IOException e) {
                             e.printStackTrace();
                             Log.d(TAG, "do while end:-- buffer len= "
                                     + buffer.length + "  current: " + current);
 
 //                            fos.write(buffer);
-                            save_file(name,buffer);
                             Log.d(TAG, "fos.write success! buffer: "
                                     + buffer.length + "  current: " + current);
 
@@ -476,7 +490,7 @@ public class ChatController {
 
             FileOutputStream fos = null;//Get OutputStream for NewFile Location
             try {
-                fos = new FileOutputStream(outputFile);
+                fos = new FileOutputStream(outputFile,true);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
