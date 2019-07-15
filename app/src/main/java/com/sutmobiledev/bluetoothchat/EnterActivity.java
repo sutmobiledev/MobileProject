@@ -13,7 +13,7 @@ public class EnterActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_enter);
-        rl = findViewById(R.id.rootRL);
+        rl = (RelativeLayout) findViewById(R.id.rootRL);
         rl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

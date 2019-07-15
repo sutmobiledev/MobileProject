@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,13 +46,15 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> chatMessages;
     private BluetoothAdapter bluetoothAdapter;
 
-    public static final String TAG = "SUTBluetoothChat";
+    public static final String TAG = "SUTBluetoothChatMain";
+    public static final int MESSAGE_NOTIFY = 6;
 
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_OBJECT = 4;
     public static final int MESSAGE_TOAST = 5;
+    public static int USER_ID = 0;
     public static final String DEVICE_OBJECT = "device_name";
 
     public static final String SEND_MESSAGE = "message";
@@ -62,40 +66,14 @@ public class MainActivity extends AppCompatActivity {
     private ChatController chatController;
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-        findViewsByIds();
-
-        //check device support bluetooth or not
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        //show bluetooth devices dialog when click connect button
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPrinterPickDialog();
-            }
-        });
-
-        //set chat adapter
-        chatMessages = new ArrayList<>();
-        chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
-        listView.setAdapter(chatAdapter);
-    }
-
+    private SharedPreferences sharedPreferences;
     private Handler handler = new Handler(new Handler.Callback() {
 
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
+                case MESSAGE_NOTIFY:
+                    chatController.notify();
                 case MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case ChatController.STATE_CONNECTED:
@@ -140,6 +118,43 @@ public class MainActivity extends AppCompatActivity {
         }
     });
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+        findViewsByIds();
+
+        sharedPreferences = getPreferences(MODE_PRIVATE);
+
+        //check device support bluetooth or not
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        if (sharedPreferences.contains("USER_ID")) {
+            USER_ID = sharedPreferences.getInt("USER_ID", 0);
+        } else {
+            USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
+            sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
+        }
+
+        //show bluetooth devices dialog when click connect button
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPrinterPickDialog();
+            }
+        });
+
+        //set chat adapter
+        chatMessages = new ArrayList<String>();
+        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
+        listView.setAdapter(chatAdapter);
+    }
+
     private void showPrinterPickDialog() {
         dialog = new Dialog(this);
         dialog.setContentView(R.layout.layout_bluetooth);
@@ -151,12 +166,12 @@ public class MainActivity extends AppCompatActivity {
         bluetoothAdapter.startDiscovery();
 
         //Initializing bluetooth adapters
-        ArrayAdapter<String> pairedDevicesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
-        discoveredDevicesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
+        ArrayAdapter<String> pairedDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        discoveredDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
         //locate listviews and attatch the adapters
-        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
-        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
+        ListView listView = (ListView) dialog.findViewById(R.id.pairedDeviceList);
+        ListView listView2 = (ListView) dialog.findViewById(R.id.discoveredDeviceList);
         listView.setAdapter(pairedDevicesAdapter);
         listView2.setAdapter(discoveredDevicesAdapter);
 
@@ -229,23 +244,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void findViewsByIds() {
-        status = findViewById(R.id.status);
-        btnConnect = findViewById(R.id.btn_connect);
-        listView = findViewById(R.id.list);
-        inputLayout = findViewById(R.id.input_layout);
+        status = (TextView) findViewById(R.id.status);
+        btnConnect = (Button) findViewById(R.id.btn_connect);
+        listView = (ListView) findViewById(R.id.list);
+        inputLayout = (TextInputLayout) findViewById(R.id.input_layout);
         View btnSend = findViewById(R.id.btn_send);
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showFileChooser();
-                /*if (inputLayout.getEditText().getText().toString().equals("")) {
+                if (inputLayout.getEditText().getText().toString().equals("")) {
                     Toast.makeText(MainActivity.this, "Please input some texts", Toast.LENGTH_SHORT).show();
                 } else {
-                    //TODO: here
                     sendMessage(inputLayout.getEditText().getText().toString());
                     inputLayout.getEditText().setText("");
-                }*/
+                }
             }
         });
     }
@@ -266,13 +279,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showFileChooser() {
-        int writeExternalStoragePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        // If do not grant write external storage permission.
-
-        if (writeExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
-            // Request user to grant write external storage permission.
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10);
-        }
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
@@ -316,9 +324,9 @@ public class MainActivity extends AppCompatActivity {
 
             // content
             try {
-                send = new byte[64 * 1024];
+                send = new byte[8 * 1024];
                 FileInputStream fin = new FileInputStream(out);
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 64 * 1024);
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 8 * 1024);
 
                 while ((bufferedInputStream.read(send)) != -1)
                     chatController.write(send);
@@ -369,20 +377,7 @@ public class MainActivity extends AppCompatActivity {
                     String path = uri.getPath();
                     Log.d(TAG, "File Path: " + path);
 
-                    File out = new File(path);
-                    if (out.length() > 0) {
-                        // content
-                        try {
-                            byte[] send = new byte[64 * 1024];
-                            FileInputStream fin = new FileInputStream(out);
-                            BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 64 * 1024);
-
-                            while ((bufferedInputStream.read(send)) != -1)
-                                Log.d(TAG, new String(send));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    sendFile(path, "");
                 }
                 break;
 
