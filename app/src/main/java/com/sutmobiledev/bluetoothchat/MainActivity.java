@@ -1,5 +1,6 @@
 package com.sutmobiledev.bluetoothchat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -8,11 +9,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -38,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> chatMessages;
     private BluetoothAdapter bluetoothAdapter;
 
+    public static final String TAG = "SUTBluetoothChat";
+
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
@@ -49,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String SEND_FILE = "file";
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
+    private static final int CHOOSE_FILE = 2;
+
     private ChatController chatController;
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
@@ -228,27 +238,16 @@ public class MainActivity extends AppCompatActivity {
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (inputLayout.getEditText().getText().toString().equals("")) {
+                showFileChooser();
+                /*if (inputLayout.getEditText().getText().toString().equals("")) {
                     Toast.makeText(MainActivity.this, "Please input some texts", Toast.LENGTH_SHORT).show();
                 } else {
                     //TODO: here
                     sendMessage(inputLayout.getEditText().getText().toString());
                     inputLayout.getEditText().setText("");
-                }
+                }*/
             }
         });
-    }
-
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_ENABLE_BLUETOOTH:
-                if (resultCode == Activity.RESULT_OK) {
-                    chatController = new ChatController(this, handler);
-                } else {
-                    Toast.makeText(this, "Bluetooth still disabled, turn off application!", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-        }
     }
 
     private void sendMessage(String message) {
@@ -263,6 +262,30 @@ public class MainActivity extends AppCompatActivity {
 
             send = message.getBytes();
             chatController.write(send);
+        }
+    }
+
+    private void showFileChooser() {
+        int writeExternalStoragePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        // If do not grant write external storage permission.
+
+        if (writeExternalStoragePermission != PackageManager.PERMISSION_GRANTED) {
+            // Request user to grant write external storage permission.
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10);
+        }
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, "Select a File to Upload"),
+                    CHOOSE_FILE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Please install a File Manager.",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -287,7 +310,8 @@ public class MainActivity extends AppCompatActivity {
             chatController.write(send);
 
             // file name
-            send = file_name.getBytes();
+            String[] temp = file_name.split("/");
+            send = temp[temp.length - 1].getBytes();
             chatController.write(send);
 
             // content
@@ -331,6 +355,47 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (chatController != null)
             chatController.stop();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case CHOOSE_FILE:
+                if (resultCode == Activity.RESULT_OK) {
+                    // Get the Uri of the selected file
+                    Uri uri = data.getData();
+                    Log.d(TAG, "File Uri: " + uri.toString());
+                    // Get the path
+                    String path = uri.getPath();
+                    Log.d(TAG, "File Path: " + path);
+
+                    File out = new File(path);
+                    if (out.length() > 0) {
+                        // content
+                        try {
+                            byte[] send = new byte[64 * 1024];
+                            FileInputStream fin = new FileInputStream(out);
+                            BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 64 * 1024);
+
+                            while ((bufferedInputStream.read(send)) != -1)
+                                Log.d(TAG, new String(send));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                break;
+
+            case REQUEST_ENABLE_BLUETOOTH:
+                if (resultCode == Activity.RESULT_OK) {
+                    chatController = new ChatController(this, handler);
+                } else {
+                    Toast.makeText(this, "Bluetooth still disabled, turn off application!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private final BroadcastReceiver discoveryFinishReceiver = new BroadcastReceiver() {
