@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_horizontal_margin"
+    android:background="@color/colorPrimary2"
+    tools:context="com.sutmobiledev.bluetoothchat.ChooseActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.1"
+        android:orientation="vertical">
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/rootRL"
+            android:layout_width="fill_parent"
+            android:background="@drawable/choose"
+            android:layout_height="250dp"
+            android:orientation="vertical"></RelativeLayout>
+
+        <Button
+            android:id="@+id/btn_start"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:text="Start Chatting" />
+
+        <Button
+            android:id="@+id/btn_review"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:text="Review Chats" />
+    </LinearLayout>
+
+</LinearLayout>
