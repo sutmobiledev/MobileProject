@@ -166,49 +166,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         }
     });
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-        findViewsByIds();
-
-        sharedPreferences = getPreferences(MODE_PRIVATE);
-
-        //check device support bluetooth or not
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        if (sharedPreferences.contains("USER_ID")) {
-            USER_ID = sharedPreferences.getInt("USER_ID", 0);
-            profileAddress = sharedPreferences.getString("PROFILE_PIC",null);
-            user_name = sharedPreferences.getString("USER_NAME","Unknown");
-        } else {
-            USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
-            sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
-            sharedPreferences.edit().putString("PROFILE_PIC", profileAddress).commit();
-            sharedPreferences.edit().putString("USER_NAME", user_name).commit();
-        }
-        bluetoothAdapter.setName(user_name);
-
-
-        //show bluetooth devices dialog when click connect button
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPrinterPickDialog();
-            }
-        });
-
-        //set chat adapter
-        chatMessages = new ArrayList<String>();
-        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
-        listView.setAdapter(chatAdapter);
-    }
-
     private void showPrinterPickDialog() {
         dialog = new Dialog(this);
         dialog.setContentView(R.layout.layout_bluetooth);
@@ -521,8 +478,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         chatMessages = new ArrayList<String>();
         chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
         listView.setAdapter(chatAdapter);
-
-
+        
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
