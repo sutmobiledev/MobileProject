@@ -18,11 +18,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE CONTACTS (ID INTEGER PRIMARY KEY, NAME TEXT, PICADD TEXT) ");
+        db.execSQL("CREATE TABLE MESSAGES (ID INTEGER PRIMARY KEY AUTOINCREMENT,CONTACTID INTEGER ,TYPE INTEGER,BODY TEXT, BELONGSTOCURRENTUSER INTEGER)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS CONTACTS");
+        db.execSQL("DROP TABLE IF EXISTS CHATS");
         onCreate(db);
     }
 
@@ -37,43 +39,51 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public void addChat(Chat chat) {
+    public void addMessage(Message message) {
         this.db = getWritableDatabase();
-        db.execSQL("CREATE TABLE IF NOT EXISTS CHATS_WITH_" + chat.getContact().getId() + " (CHATID INTEGER PRIMARY KEY, ISTEXT INTEGER,TEXT TEXT, ISSENT INTEGER)");
         ContentValues contentValues = new ContentValues();
-        contentValues.put("CHATID", chat.getChatID());
-        contentValues.put("ISTEXT", chat.getIsText());
-        contentValues.put("TEXT", chat.getText());
-        contentValues.put("ISSENT", chat.getIsSent());
-        this.db.insert("CHAT_WITH_" + chat.getContact().getId(), null, contentValues);
+        contentValues.put("CONTACTID", message.getContactId());
+        contentValues.put("TYPE", message.getType());
+        if(message.getType() == Message.TYPE_TEXT) {
+            contentValues.put("BODY", message.getBody());
+        }else {
+            contentValues.put("BODY", message.getFileAddress());
+        }
+        contentValues.put("BELONGSTOCURRENTUSER", message.belongsToCurrentUser ? 1 : 0);
+        this.db.insert("MESSAGES", null, contentValues);
         this.db.close();
 
     }
 
-    public ArrayList<Chat> getchats(Contact contact) {
+    public ArrayList<Message> getMessages(int contactId) {
         this.db = this.getReadableDatabase();
-        ArrayList<Chat> chats = null;
-        Cursor cursor = db.rawQuery("SELECT * FROM CHATS_WITH_" + contact.getId(), null);
+        ArrayList<Message> messages = null;
+        Cursor cursor = db.rawQuery("SELECT * FROM MESSAGES WHERE ID = " + contactId, null);
         if (cursor.moveToFirst()) {
-            chats = new ArrayList<>();
+            messages = new ArrayList<>();
             do {
-                Chat chat = new Chat();
-                chat.setChatID(cursor.getInt(0));
-                chat.setIsText(cursor.getInt(1));
-                chat.setText(cursor.getString(2));
-                chat.setIsSent(cursor.getInt(3));
-                chats.add(chat);
+                Message message = new Message();
+                message.setId(cursor.getInt(0));
+                message.setContactId(cursor.getInt(1));
+                message.setType(cursor.getInt(2));
+                if (message.getType() == Message.TYPE_TEXT) {
+                    message.setBody(cursor.getString(3));
+                } else {
+                    message.setFileAddress(cursor.getString(3));
+                }
+                message.setBelongsToCurrentUser(cursor.getInt(4) == 1);
+                messages.add(message);
             } while (cursor.moveToNext());
 
         }
         db.close();
         cursor.close();
-        return chats;
+        return messages;
     }
 
     public ArrayList<Contact> getContacts() {
         this.db = this.getReadableDatabase();
-        ArrayList<Contact> contacts = null;
+        ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM CONTACTS", null);
         if (cursor.moveToFirst()) {
             contacts = new ArrayList<>();

@@ -1,7 +1,9 @@
 package com.sutmobiledev.bluetoothchat;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewStub;
@@ -13,18 +15,19 @@ import java.util.List;
 
 public class ReviewActivity extends AppCompatActivity {
     private List<Card> cards = new ArrayList<>();
-
+    private DataBaseHelper dataBaseHelper;
     private ListView listView;
     private ViewStub stubList;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        dataBaseHelper = new DataBaseHelper(this);
 
         setContentView(R.layout.activity_review);
         listView = (ListView) findViewById(R.id.l);
-        int i = 0;
-        while(i<10){
-            cards.add(new Card("salam",90));
-            i++;
+        ArrayList<Contact> contacts = dataBaseHelper.getContacts();
+        for (int i = 0; i < contacts.size(); i++) {
+            cards.add(new Card(contacts.get(i)));
+
         }
         stubList = (ViewStub) findViewById(R.id.stub);
         stubList.inflate();
@@ -35,6 +38,9 @@ public class ReviewActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putInt("postId", cards.get(i).getPostId()).apply();
+                ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putString("contactName", cards.get(i).getName()).apply();
+                ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putString("imageAdd", cards.get(i).getImageAdd()).apply();
+
                 ReviewActivity.this.startActivity(new Intent(ReviewActivity.this, ChatsRe.class));
             }
         });

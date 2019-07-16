@@ -17,6 +17,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -275,6 +277,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        Button btnFile = (Button) findViewById(R.id.file);
+
+        btnFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment blankFragment = new BlankFragment();
+                ((BlankFragment) blankFragment).setMain(MainActivity.this);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame,blankFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                showFileChooser();
+            }
+        });
     }
 
     private void sendMessage(String message) {
@@ -292,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showFileChooser() {
+    public void showFileChooser() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10);
 

@@ -12,6 +12,7 @@ public class EnterActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         setContentView(R.layout.activity_enter);
         rl = (RelativeLayout) findViewById(R.id.rootRL);
         rl.setOnClickListener(new View.OnClickListener() {
@@ -21,4 +22,5 @@ public class EnterActivity extends Activity {
             }
         });
     }
+
 }

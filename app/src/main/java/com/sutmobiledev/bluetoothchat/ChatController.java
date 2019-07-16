@@ -6,10 +6,12 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import java.io.File;
@@ -246,6 +248,7 @@ public class ChatController {
     private class AcceptThread extends Thread {
         private final BluetoothServerSocket serverSocket;
 
+        @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
         public AcceptThread() {
             BluetoothServerSocket tmp = null;
             try {
