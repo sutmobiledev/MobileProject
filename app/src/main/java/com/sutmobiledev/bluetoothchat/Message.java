@@ -1,14 +1,21 @@
 package com.sutmobiledev.bluetoothchat;
 
 public class Message {
-    private String type;
+    public final static int TYPE_TEXT = 1;
+    public final static int TYPE_IMAGE = 2;
+    public final static int TYPE_VIDEO = 3;
+    public final static int TYPE_VOICE = 4;
+    public final static int TYPE_FILE = 5;
+
+
+    private int type;
     private String name;
     private String imageAdd;
     private String body;
     private String photoAdress;
 
     boolean belongsToCurrentUser;
-    Message(String type, String name, String body, String imageAdd, String  photoAdress, boolean belongsToCurrentUser){
+    Message(int type, String name, String body, String imageAdd, String  photoAdress, boolean belongsToCurrentUser){
         this.body = body;
         this.imageAdd = imageAdd;
         this.name = name;
@@ -33,7 +40,7 @@ public class Message {
         return name;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 

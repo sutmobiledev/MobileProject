@@ -16,6 +16,9 @@ public class ChatsRe extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         messageAdapter = new MessageAdapter(this);
         messagesView = (ListView) findViewById(R.id.list);
+        Message message = new Message(Message.TYPE_TEXT,"mahsa","How are you doing? This is a long message that should probably wrap.","/sdcard/Download/annie-spratt-01Wa3tPoQQ8-unsplash.jpg","/sdcard/Download/annie-spratt-01Wa3tPoQQ8-unsplash.jpg",false);
+        messageAdapter.add(message);
+        messagesView.setSelection(messagesView.getCount() - 1);
         messagesView.setAdapter(messageAdapter);
     }
     @Override

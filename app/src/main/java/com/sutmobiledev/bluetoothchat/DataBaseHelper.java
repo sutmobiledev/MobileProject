@@ -18,11 +18,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE CONTACTS (ID INTEGER PRIMARY KEY, NAME TEXT, PICADD TEXT) ");
+        db.execSQL("CREATE TABLE CHATS (ID INTEGER PRIMARY KEY AUTOINCREMENT, TEXT TEXT)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS CONTACTS");
+        db.execSQL("DROP TABLE IF EXISTS CHATS");
         onCreate(db);
     }
 
@@ -39,13 +41,12 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public void addChat(Chat chat) {
         this.db = getWritableDatabase();
-        db.execSQL("CREATE TABLE IF NOT EXISTS CHATS_WITH_" + chat.getContact().getId() + " (CHATID INTEGER PRIMARY KEY, ISTEXT INTEGER,TEXT TEXT, ISSENT INTEGER)");
         ContentValues contentValues = new ContentValues();
         contentValues.put("CHATID", chat.getChatID());
         contentValues.put("ISTEXT", chat.getIsText());
         contentValues.put("TEXT", chat.getText());
         contentValues.put("ISSENT", chat.getIsSent());
-        this.db.insert("CHAT_WITH_" + chat.getContact().getId(), null, contentValues);
+        this.db.insert("CHAT" + chat.getContact().getId(), null, contentValues);
         this.db.close();
 
     }
@@ -53,7 +54,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<Chat> getchats(Contact contact) {
         this.db = this.getReadableDatabase();
         ArrayList<Chat> chats = null;
-        Cursor cursor = db.rawQuery("SELECT * FROM CHATS_WITH_" + contact.getId(), null);
+        Cursor cursor = db.rawQuery("SELECT * FROM CHATS WHERE ID = " + contact.getId(), null);
         if (cursor.moveToFirst()) {
             chats = new ArrayList<>();
             do {

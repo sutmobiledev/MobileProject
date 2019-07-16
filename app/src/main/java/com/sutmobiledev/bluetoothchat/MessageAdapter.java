@@ -51,7 +51,7 @@ public class MessageAdapter extends BaseAdapter{
         Message message = messages.get(i);
 
         if (message.isBelongsToCurrentUser()) {
-            if(message.getType() == "Image"){
+            if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.my_message_image, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
                 File folder = new File(message.getPhotoAdress());
@@ -68,7 +68,7 @@ public class MessageAdapter extends BaseAdapter{
                 holder.sendedPhoto = imageView;
                 convertView.setTag(holder);
             }
-            else if (message.getType() == "Text"){
+            else if (message.getType() == Message.TYPE_TEXT){
                 convertView = messageInflater.inflate(R.layout.my_message, null);
                 holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
                 convertView.setTag(holder);
@@ -81,7 +81,7 @@ public class MessageAdapter extends BaseAdapter{
                 holder.messageBody.setText(message.getType());
             }
         } else {
-            if(message.getType() == "Image"){
+            if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.their_message_image, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
                 File folder = new File(message.getImageAdd());
@@ -109,7 +109,7 @@ public class MessageAdapter extends BaseAdapter{
                 }
                 holder.sendedPhoto = imageView2;
             }
-            else if(message.getType() == "Text"){
+            else if(message.getType() == Message.TYPE_TEXT){
                 convertView = messageInflater.inflate(R.layout.their_message, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
                 File folder = new File(message.getImageAdd());
