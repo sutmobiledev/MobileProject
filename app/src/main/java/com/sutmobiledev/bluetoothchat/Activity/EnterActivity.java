@@ -1,4 +1,4 @@
-package com.sutmobiledev.bluetoothchat;
+package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.RelativeLayout;
+
+import com.sutmobiledev.bluetoothchat.R;
 
 public class EnterActivity extends Activity {
     RelativeLayout rl;
@@ -20,7 +22,7 @@ public class EnterActivity extends Activity {
         db.addMessage(new Message(1, "akbar", "salam", null, null, 2, false));
         db.addMessage(new Message(1, "akbar", "salam bar to ey hamneshine ghadimi toolani she payam ke bishtar az ye kah base moshkeli pish nayad ye vaght", null, null, 2, true));
         setContentView(R.layout.activity_enter);
-        rl = (RelativeLayout) findViewById(R.id.rootRL);
+        rl = findViewById(R.id.rootRL);
         rl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

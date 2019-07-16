@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.sutmobiledev.bluetoothchat.Activity.MainActivity;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -23,10 +25,10 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
 
         View rootView = inflater.inflate(R.layout.fragment_blank, container, false);
 
-        Button image = (Button) rootView.findViewById(R.id.btn_image);
-        Button video = (Button) rootView.findViewById(R.id.btn_video);
-        Button voice = (Button) rootView.findViewById(R.id.btn_voice);
-        Button file = (Button) rootView.findViewById(R.id.btn_file);
+        Button image = rootView.findViewById(R.id.btn_image);
+        Button video = rootView.findViewById(R.id.btn_video);
+        Button voice = rootView.findViewById(R.id.btn_voice);
+        Button file = rootView.findViewById(R.id.btn_file);
 
         image.setOnClickListener(this);
         video.setOnClickListener(this);

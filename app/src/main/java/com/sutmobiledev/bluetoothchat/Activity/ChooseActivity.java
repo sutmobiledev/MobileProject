@@ -1,10 +1,12 @@
-package com.sutmobiledev.bluetoothchat;
+package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import com.sutmobiledev.bluetoothchat.R;
 
 public class ChooseActivity extends Activity {
     Button start;
@@ -15,14 +17,14 @@ public class ChooseActivity extends Activity {
 
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         setContentView(R.layout.activity_choose);
-        start = (Button) findViewById(R.id.btn_start);
+        start = findViewById(R.id.btn_start);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(ChooseActivity.this, MainActivity.class));
             }
         });
-        review = (Button) findViewById(R.id.btn_review);
+        review = findViewById(R.id.btn_review);
         review.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

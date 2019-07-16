@@ -1,4 +1,4 @@
-package com.sutmobiledev.bluetoothchat;
+package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.Manifest;
 import android.app.Activity;
@@ -30,6 +30,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sutmobiledev.bluetoothchat.BlankFragment;
+import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.R;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,11 +63,14 @@ public class MainActivity extends AppCompatActivity {
     public static int USER_ID = 0;
     public static final String DEVICE_OBJECT = "device_name";
 
-    public static final String SEND_MESSAGE = "message";
-    public static final String SEND_FILE = "file";
+    public static final String SEND_MESSAGE = "1654656513515613135156156132";
+    public static final String SEND_FILE = "3165165156464461354616646";
+    public static final String SEND_NOTIFY = "3213254865165498451032";
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     private static final int CHOOSE_FILE = 2;
+
+    public static final Object lock = new Object();
 
     private ChatController chatController;
     private BluetoothDevice connectingDevice;
@@ -75,7 +82,10 @@ public class MainActivity extends AppCompatActivity {
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_NOTIFY:
-                    chatController.notify();
+                    Log.d(TAG, "handleMessage: Notify Message is received.");
+                    synchronized (MainActivity.lock) {
+                        MainActivity.lock.notify();
+                    }
                 case MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case ChatController.STATE_CONNECTED:
@@ -172,8 +182,8 @@ public class MainActivity extends AppCompatActivity {
         discoveredDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
         //locate listviews and attatch the adapters
-        ListView listView = (ListView) dialog.findViewById(R.id.pairedDeviceList);
-        ListView listView2 = (ListView) dialog.findViewById(R.id.discoveredDeviceList);
+        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
+        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
         listView.setAdapter(pairedDevicesAdapter);
         listView2.setAdapter(discoveredDevicesAdapter);
 
@@ -246,11 +256,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void findViewsByIds() {
-        status = (TextView) findViewById(R.id.status);
-        btnConnect = (Button) findViewById(R.id.btn_connect);
-        listView = (ListView) findViewById(R.id.list);
-        inputLayout = (TextInputLayout) findViewById(R.id.input_layout);
+        status = findViewById(R.id.status);
+        btnConnect = findViewById(R.id.btn_connect);
+        listView = findViewById(R.id.list);
+        inputLayout = findViewById(R.id.input_layout);
         View btnSend = findViewById(R.id.btn_send);
+        Button btnFile = findViewById(R.id.btn_file);
+
+        btnFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment blankFragment = new BlankFragment();
+                ((BlankFragment) blankFragment).setMain(MainActivity.this);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, blankFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                showFileChooser();
+            }
+        });
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -263,20 +287,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        Button btnFile = (Button) findViewById(R.id.file);
-
-        btnFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Fragment blankFragment = new BlankFragment();
-                ((BlankFragment) blankFragment).setMain(MainActivity.this);
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame,blankFragment);
-                transaction.addToBackStack(null);
-                transaction.commit();
-                showFileChooser();
-            }
-        });
     }
 
     private void sendMessage(String message) {
@@ -287,10 +297,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (message.length() > 0) {
             byte[] send = SEND_MESSAGE.getBytes();
-            chatController.write(send);
+            chatController.write(send, 0);
 
             send = message.getBytes();
-            chatController.write(send);
+            chatController.write(send, 1);
         }
     }
 
@@ -323,20 +333,20 @@ public class MainActivity extends AppCompatActivity {
         if (out.length() > 0) {
             // Message type
             byte[] send = SEND_FILE.getBytes();
-            chatController.write(send);
+            chatController.write(send, 0);
 
             // length
             send = String.valueOf(out.length()).getBytes();
-            chatController.write(send);
+            chatController.write(send, 0);
 
             // file type
             send = type.getBytes();
-            chatController.write(send);
+            chatController.write(send, 0);
 
             // file name
             String[] temp = file_name.split("/");
             send = temp[temp.length - 1].getBytes();
-            chatController.write(send);
+            chatController.write(send, 0);
 
             // content
             try {
@@ -345,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
                 BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 8 * 1024);
 
                 while ((bufferedInputStream.read(send)) != -1)
-                    chatController.write(send);
+                    chatController.write(send, 0);
             } catch (Exception e) {
                 e.printStackTrace();
             }
