@@ -252,16 +252,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void findViewsByIds() {
-        status = (TextView) findViewById(R.id.status);
-        btnConnect = (Button) findViewById(R.id.btn_connect);
-        listView = (ListView) findViewById(R.id.list);
-        inputLayout = (TextInputLayout) findViewById(R.id.input_layout);
+        status = findViewById(R.id.status);
+        btnConnect = findViewById(R.id.btn_connect);
+        listView = findViewById(R.id.list);
+        inputLayout = findViewById(R.id.input_layout);
         View btnSend = findViewById(R.id.btn_send);
-        Button btnFile = (Button) findViewById(R.id.btn_file);
+        Button btnFile = findViewById(R.id.btn_file);
 
         btnFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Fragment blankFragment = new BlankFragment();
+                ((BlankFragment) blankFragment).setMain(MainActivity.this);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, blankFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
                 showFileChooser();
             }
         });
@@ -275,20 +281,6 @@ public class MainActivity extends AppCompatActivity {
                     sendMessage(inputLayout.getEditText().getText().toString());
                     inputLayout.getEditText().setText("");
                 }
-            }
-        });
-        Button btnFile = (Button) findViewById(R.id.file);
-
-        btnFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Fragment blankFragment = new BlankFragment();
-                ((BlankFragment) blankFragment).setMain(MainActivity.this);
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame,blankFragment);
-                transaction.addToBackStack(null);
-                transaction.commit();
-                showFileChooser();
             }
         });
     }
