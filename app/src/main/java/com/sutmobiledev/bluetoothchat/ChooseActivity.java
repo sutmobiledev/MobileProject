@@ -15,14 +15,14 @@ public class ChooseActivity extends Activity {
 
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         setContentView(R.layout.activity_choose);
-        start = findViewById(R.id.btn_start);
+        start = (Button) findViewById(R.id.btn_start);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(ChooseActivity.this, MainActivity.class));
             }
         });
-        review = findViewById(R.id.btn_review);
+        review = (Button) findViewById(R.id.btn_review);
         review.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

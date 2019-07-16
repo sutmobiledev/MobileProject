@@ -29,10 +29,12 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.7" />
+        android:id="@+id/list"
+        android:layout_weight="2"
+        android:divider="#fff"
+        android:layout_height="wrap_content"
+        />
 
 
     <LinearLayout
@@ -40,6 +42,13 @@
         android:layout_height="0dp"
         android:layout_weight="0.1"
         android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="file" />
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/input_layout"

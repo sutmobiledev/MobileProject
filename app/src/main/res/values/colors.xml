@@ -3,6 +3,7 @@
     <color name="colorPrimary" tools:ignore="MissingDefaultResource">#4FA8DC</color>
     <color name="colorPrimary2">#8FFFF176</color>
     <color name="white">#00FFF176</color>
+    <color name="black">#000000</color>
     <color name="colorPrimaryDark">#2984ba</color>
     <color name="colorAccent">#FF7676</color>
 </resources>

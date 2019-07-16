@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewStub;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -31,5 +32,13 @@ public class ReviewActivity extends AppCompatActivity {
         stubList.setVisibility(View.VISIBLE);
         listView = findViewById(R.id.l);
         listView.setAdapter(new ImageAdapter(this, R.layout.list_view, cards));
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putInt("postId", cards.get(i).getPostId()).apply();
+                ReviewActivity.this.startActivity(new Intent(ReviewActivity.this, ChatsRe.class));
+            }
+        });
+
     }
 }
