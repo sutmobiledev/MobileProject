@@ -13,6 +13,7 @@ public class ChooseActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         setContentView(R.layout.activity_choose);
         start = findViewById(R.id.btn_start);
         start.setOnClickListener(new View.OnClickListener() {
@@ -28,5 +29,11 @@ public class ChooseActivity extends Activity {
                 startActivity(new Intent(ChooseActivity.this, ReviewActivity.class));
             }
         });
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
     }
 }
