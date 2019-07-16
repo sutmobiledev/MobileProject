@@ -33,6 +33,8 @@ public class ChatController {
     private int state;
     private MainActivity mainActivity;
 
+    private WriteThread writeThread;
+
     static final int STATE_NONE = 0;
     static final int STATE_LISTEN = 1;
     static final int STATE_CONNECTING = 2;
@@ -43,6 +45,7 @@ public class ChatController {
         state = STATE_NONE;
         mainActivity = (MainActivity) context;
         this.handler = handler;
+        writeThread = new WriteThread();
     }
 
     // Set the current state of the chat connection
@@ -152,15 +155,24 @@ public class ChatController {
         setState(STATE_NONE);
     }
 
-    public void write(byte[] out) {
-        ReadWriteThread r;
-        synchronized (this) {
-            if (state != STATE_CONNECTED)
-                return;
-            r = connectedThread;
-        }
+    public void write(byte[] out, int shouldWrite) {
+        writeThread.writeHandler.obtainMessage(0, shouldWrite, 0, out).sendToTarget();
 
-        r.write(out);
+        if (!writeThread.isAlive())
+            writeThread.start();
+    }
+
+    public void sendNotify() {
+        ReadWriteThread r;
+
+        if (state != STATE_CONNECTED)
+            return;
+        r = connectedThread;
+
+
+        r.write(MainActivity.SEND_NOTIFY.getBytes(), 0);
+
+        Log.d(TAG, "sendNotify: done.");
     }
 
     private void connectionFailed() {
@@ -183,6 +195,51 @@ public class ChatController {
 
         // Start the service over to restart listening mode
         ChatController.this.start();
+    }
+
+    private class WriteThread extends Thread {
+        private byte[] bufferToWrite;
+        private boolean ready = false;
+        private int shouldSend = 0;
+        public Handler writeHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                Log.d(TAG, "handleMessage: Before");
+                while (ready) ;
+                Log.d(TAG, "handleMessage: After");
+                bufferToWrite = ((byte[]) msg.obj).clone();
+                shouldSend = msg.arg1;
+                ready = true;
+
+                return true;
+            }
+        });
+
+        @Override
+        public void run() {
+            while (true) {
+                if (ready) {
+                    ReadWriteThread r;
+                    synchronized (MainActivity.lock) {
+                        if (state != STATE_CONNECTED)
+                            return;
+                        r = connectedThread;
+
+
+                        r.write(bufferToWrite, shouldSend);
+                        Log.d(TAG, "write: " + new String(bufferToWrite));
+                        Log.d(TAG, "write: " + MainActivity.lock.toString());
+
+                        try {
+                            ready = false;
+                            MainActivity.lock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // runs while listening for incoming connections
@@ -332,13 +389,13 @@ public class ChatController {
 
                 Log.d(TAG, "run: " + new String(buffer));
                     String code = new String(buffer);
-                    if(code == "message") {
+                if (code.startsWith(MainActivity.SEND_MESSAGE)) {
                         byte[] buffer_read = new byte[1024];
                         int nbytes;
                         try {
-                            ChatController.this.write("notify".getBytes());
+                            sendNotify();
                             nbytes = inputStream.read(buffer_read);
-                            ChatController.this.write("notify".getBytes());
+                            sendNotify();
                         }catch (IOException e) {
                             connectionLost();
                             // Start the service over to restart listening mode
@@ -346,16 +403,15 @@ public class ChatController {
                             break;
                         }
 
-                        Log.d(TAG, "run: " + String.valueOf(nbytes));
-                        //Log.d(TAG, "run: " + new String(buffer_read) + '\n');
+                    Log.d(TAG, "run: " + new String(buffer_read));
 
                         // Send the obtained bytes to the UI Activity
                         handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1,
-                                buffer).sendToTarget();
-                    } else if (code == "notify") {
+                                buffer_read).sendToTarget();
+                } else if (code.startsWith(MainActivity.SEND_NOTIFY)) {
                         handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0,
                                 null).sendToTarget();
-                    } else if(code == "file"){
+                } else if (code.startsWith(MainActivity.SEND_FILE)) {
                         byte[] buffer_Length = new byte[1024];
                         try {
                             inputStream.read(buffer_Length);
@@ -447,13 +503,13 @@ public class ChatController {
         }
 
         // write to OutputStream
-        public void write(byte[] buffer) {
+        public synchronized void write(byte[] buffer, int shouldWrite) {
+            Log.d(TAG, "write: " + new String(buffer));
             try {
                 outputStream.write(buffer);
-                //if (!new String(buffer).equalsIgnoreCase("notify"))
-                handler.obtainMessage(MainActivity.MESSAGE_WRITE, -1, -1, buffer).sendToTarget();
-                ChatController.this.wait();
-            } catch (Exception e) {
+                if (shouldWrite == 1)
+                    handler.obtainMessage(MainActivity.MESSAGE_WRITE, buffer).sendToTarget();
+            } catch (IOException e) {
             }
         }
 
