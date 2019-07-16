@@ -54,7 +54,7 @@ public class MessageAdapter extends BaseAdapter{
             if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.my_message_image, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
-                File folder = new File(message.getPhotoAdress());
+                File folder = new File(message.getFileAddress());
 //            File   folderpath = new File(folder+File.separator+imagename);
                 if(folder.exists())
                 {
@@ -97,7 +97,7 @@ public class MessageAdapter extends BaseAdapter{
 
                 holder.name.setText(message.getName());
                 ImageView imageView2 = convertView.findViewById(R.id.imageView2);
-                File folder2 = new File(message.getPhotoAdress());
+                File folder2 = new File(message.getFileAddress());
                 if(folder2.exists())
                 {
                     String folderpath3 = folder2.getAbsolutePath().toString().trim();

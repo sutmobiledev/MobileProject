@@ -39,6 +39,9 @@ public class ReviewActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putInt("postId", cards.get(i).getPostId()).apply();
+                ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putString("contactName", cards.get(i).getName()).apply();
+                ReviewActivity.this.getSharedPreferences("postId", MODE_PRIVATE).edit().putString("imageAdd", cards.get(i).getImageAdd()).apply();
+
                 ReviewActivity.this.startActivity(new Intent(ReviewActivity.this, ChatsRe.class));
             }
         });

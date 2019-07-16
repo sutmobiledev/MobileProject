@@ -7,21 +7,29 @@ public class Message {
     public final static int TYPE_VOICE = 4;
     public final static int TYPE_FILE = 5;
 
+    private int id;
+
 
     private int type;
     private String name;
     private String imageAdd;
     private String body;
-    private String photoAdress;
+    private String fileAddress;
+    private int contactId;
 
     boolean belongsToCurrentUser;
-    Message(int type, String name, String body, String imageAdd, String  photoAdress, boolean belongsToCurrentUser){
+
+    Message(int type, String name, String body, String imageAdd, String  photoAdress,int contactId, boolean belongsToCurrentUser){
         this.body = body;
         this.imageAdd = imageAdd;
         this.name = name;
         this.type = type;
-        this.photoAdress = photoAdress;
+        this.contactId = contactId;
+        this.fileAddress = photoAdress;
         this.belongsToCurrentUser = belongsToCurrentUser;
+    }
+
+    public Message() {
     }
 
     public String getText() {
@@ -38,6 +46,29 @@ public class Message {
 
     public String getName() {
         return name;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBelongsToCurrentUser(boolean belongsToCurrentUser) {
+        this.belongsToCurrentUser = belongsToCurrentUser;
+    }
+
+    public int getContactId() {
+        return contactId;
+    }
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setContactId(int contactId) {
+        this.contactId = contactId;
     }
 
     public int getType() {
@@ -61,7 +92,27 @@ public class Message {
         return null;
     }
 
-    public String getPhotoAdress() {
-        return photoAdress;
+    public String getFileAddress() {
+        return fileAddress;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setImageAdd(String imageAdd) {
+        this.imageAdd = imageAdd;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public void setFileAddress(String fileAddress) {
+        this.fileAddress = fileAddress;
     }
 }
