@@ -12,6 +12,11 @@ public class Card {
         this.imageAdd = imageAdd;
     }
 
+    public  Card(Contact contact){
+        this.postId = contact.getId();
+        this.name = contact.getName();
+        this.imageAdd = contact.getPicAdd();
+    }
     public String getName() {
         return name;
     }

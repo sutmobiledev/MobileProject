@@ -9,6 +9,7 @@ import android.widget.ListView;
 public class ChatsRe extends AppCompatActivity {
     private MessageAdapter messageAdapter;
     private ListView messagesView;
+    int postId;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatsre);
@@ -16,5 +17,11 @@ public class ChatsRe extends AppCompatActivity {
         messageAdapter = new MessageAdapter(this);
         messagesView = (ListView) findViewById(R.id.list);
         messagesView.setAdapter(messageAdapter);
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        postId = getSharedPreferences("postId", MODE_PRIVATE).getInt("postId", 0);
+
     }
 }
