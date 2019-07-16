@@ -78,7 +78,7 @@ public class MessageAdapter extends BaseAdapter{
                 convertView = messageInflater.inflate(R.layout.my_message_file, null);
                 holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
                 convertView.setTag(holder);
-                holder.messageBody.setText(message.getType());
+                holder.messageBody.setText(message.getTypeName());
             }
         } else {
             if(message.getType() == Message.TYPE_IMAGE){
@@ -143,7 +143,7 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
 
                 holder.name.setText(message.getName());
-                holder.messageBody.setText(message.getType());
+                holder.messageBody.setText(message.getTypeName());
             }
         }
 

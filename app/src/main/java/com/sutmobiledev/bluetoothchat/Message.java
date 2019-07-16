@@ -41,7 +41,24 @@ public class Message {
     }
 
     public int getType() {
+
         return type;
+    }
+
+    public String getTypeName(){
+        switch (this.type) {
+            case Message.TYPE_VIDEO :
+                return "Video";
+            case Message.TYPE_VOICE:
+                return "Voice";
+            case Message.TYPE_FILE:
+                return "File";
+            case Message.TYPE_TEXT:
+                return "Text";
+            case Message.TYPE_IMAGE:
+                return "Image";
+        }
+        return null;
     }
 
     public String getPhotoAdress() {
