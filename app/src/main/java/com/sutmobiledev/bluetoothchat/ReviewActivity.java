@@ -28,7 +28,6 @@ public class ReviewActivity extends AppCompatActivity {
         for (int i = 0; i < contacts.size(); i++) {
             cards.add(new Card(contacts.get(i)));
 
-
         }
         stubList = findViewById(R.id.stub);
         stubList.inflate();

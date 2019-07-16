@@ -73,7 +73,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<Contact> getContacts() {
         this.db = this.getReadableDatabase();
-        ArrayList<Contact> contacts = null;
+        ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM CONTACTS", null);
         if (cursor.moveToFirst()) {
             contacts = new ArrayList<>();
