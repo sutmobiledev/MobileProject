@@ -42,6 +42,8 @@ import com.sutmobiledev.bluetoothchat.ChatsRe;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.ImageAdapter;
+import com.sutmobiledev.bluetoothchat.Contact;
+import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.R;
 
 import java.io.BufferedInputStream;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private ArrayAdapter<String> chatAdapter;
     private ArrayList<String> chatMessages;
     private BluetoothAdapter bluetoothAdapter;
+    private DataBaseHelper db;
 
     public static final String TAG = "SUTBluetoothChatMain";
     public static final int MESSAGE_NOTIFY = 6;
@@ -83,6 +86,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private static final int CHOOSE_FILE = 2;
 
     public static final Object lock = new Object();
+    private com.sutmobiledev.bluetoothchat.Message message;
 
     private ChatController chatController;
     private BluetoothDevice connectingDevice;
@@ -119,17 +123,37 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
                     String writeMessage = new String(writeBuf);
                     chatMessages.add("Me: " + writeMessage);
+//                    save to db message sent by this user
+                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message.setName(connectingDevice.getName());
+                    message.setContactId(connectingDevice.getAddress().hashCode());
+                    message.setBelongsToCurrentUser(true);
+                    message.setBody(writeMessage);
+                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+                    db.addMessage(message);
                     chatAdapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
 
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message.setName(connectingDevice.getName());
+                    message.setContactId(connectingDevice.getAddress().hashCode());
+                    message.setBelongsToCurrentUser(false);
+                    message.setBody(readMessage);
+                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+                    db.addMessage(message);
+                    chatAdapter.notifyDataSetChanged();
                     chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
                     chatAdapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_DEVICE_OBJECT:
                     connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
+                    int contactId = connectingDevice.getAddress().hashCode();
+                    if (db.firsConection(contactId)) {
+                        db.addContact(new Contact(contactId,connectingDevice.getName(),"jkaldsjfk"));
+                    }
                     Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(),
                             Toast.LENGTH_SHORT).show();
                     break;
@@ -141,6 +165,49 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             return false;
         }
     });
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+        findViewsByIds();
+
+        sharedPreferences = getPreferences(MODE_PRIVATE);
+
+        //check device support bluetooth or not
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        if (sharedPreferences.contains("USER_ID")) {
+            USER_ID = sharedPreferences.getInt("USER_ID", 0);
+            profileAddress = sharedPreferences.getString("PROFILE_PIC",null);
+            user_name = sharedPreferences.getString("USER_NAME","Unknown");
+        } else {
+            USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
+            sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
+            sharedPreferences.edit().putString("PROFILE_PIC", profileAddress).commit();
+            sharedPreferences.edit().putString("USER_NAME", user_name).commit();
+        }
+        bluetoothAdapter.setName(user_name);
+
+
+        //show bluetooth devices dialog when click connect button
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPrinterPickDialog();
+            }
+        });
+
+        //set chat adapter
+        chatMessages = new ArrayList<String>();
+        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
+        listView.setAdapter(chatAdapter);
+    }
 
     private void showPrinterPickDialog() {
         dialog = new Dialog(this);
