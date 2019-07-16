@@ -15,13 +15,18 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -31,7 +36,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
+import com.sutmobiledev.bluetoothchat.Card;
 import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.ChatsRe;
+import com.sutmobiledev.bluetoothchat.Contact;
+import com.sutmobiledev.bluetoothchat.DataBaseHelper;
+import com.sutmobiledev.bluetoothchat.ImageAdapter;
 import com.sutmobiledev.bluetoothchat.R;
 
 import java.io.BufferedInputStream;
@@ -41,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener{
 
     private TextView status;
     private Button btnConnect;
@@ -131,49 +141,6 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     });
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-        findViewsByIds();
-
-        sharedPreferences = getPreferences(MODE_PRIVATE);
-
-        //check device support bluetooth or not
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
-        if (sharedPreferences.contains("USER_ID")) {
-            USER_ID = sharedPreferences.getInt("USER_ID", 0);
-            profileAddress = sharedPreferences.getString("PROFILE_PIC",null);
-            user_name = sharedPreferences.getString("USER_NAME","Unknown");
-        } else {
-            USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
-            sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
-            sharedPreferences.edit().putString("PROFILE_PIC", profileAddress).commit();
-            sharedPreferences.edit().putString("USER_NAME", user_name).commit();
-        }
-        bluetoothAdapter.setName(user_name);
-
-
-        //show bluetooth devices dialog when click connect button
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPrinterPickDialog();
-            }
-        });
-
-        //set chat adapter
-        chatMessages = new ArrayList<String>();
-        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
-        listView.setAdapter(chatAdapter);
-    }
 
     private void showPrinterPickDialog() {
         dialog = new Dialog(this);
@@ -446,5 +413,91 @@ public class MainActivity extends AppCompatActivity {
     };
     public void make_toast(){
         Toast.makeText(this, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
+    }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+        findViewsByIds();
+
+        sharedPreferences = getPreferences(MODE_PRIVATE);
+
+        //check device support bluetooth or not
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        if (sharedPreferences.contains("USER_ID")) {
+            USER_ID = sharedPreferences.getInt("USER_ID", 0);
+            profileAddress = sharedPreferences.getString("PROFILE_PIC",null);
+            user_name = sharedPreferences.getString("USER_NAME","Unknown");
+        } else {
+            USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
+            sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
+            sharedPreferences.edit().putString("PROFILE_PIC", profileAddress).commit();
+            sharedPreferences.edit().putString("USER_NAME", user_name).commit();
+        }
+        bluetoothAdapter.setName(user_name);
+
+
+        //show bluetooth devices dialog when click connect button
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPrinterPickDialog();
+            }
+        });
+
+        //set chat adapter
+        chatMessages = new ArrayList<String>();
+        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
+        listView.setAdapter(chatAdapter);
+
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.Chat) {
+            // Handle the camera action
+        } else if (id == R.id.Review) {
+            startActivity(new Intent(MainActivity.this, ReviewActivity.class));
+
+        } else if (id == R.id.ChangeUsername) {
+
+        } else if (id == R.id.ChangePhoto) {
+
+        } else if (id == R.id.Appearence) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
