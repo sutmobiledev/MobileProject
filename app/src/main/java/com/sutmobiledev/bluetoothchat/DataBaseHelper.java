@@ -67,6 +67,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
+
     public ArrayList<Message> getMessages(int contactId) {
         this.db = this.getReadableDatabase();
         ArrayList<Message> messages = null;
@@ -135,6 +136,23 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return contacts.get(0);
+    }
+
+
+    public Boolean firsConection(int contactId) {
+        this.db = this.getReadableDatabase();
+        ArrayList<Contact> contacts = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT * FROM CONTACTS WHERE ID='" +contactId+"'" , null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+            db.close();
+            return false;
+        }
+        cursor.close();
+        db.close();
+        return true;
+
+
     }
 }
 

@@ -32,6 +32,8 @@ import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.Contact;
+import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.R;
 
 import java.io.BufferedInputStream;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> chatAdapter;
     private ArrayList<String> chatMessages;
     private BluetoothAdapter bluetoothAdapter;
+    private DataBaseHelper db;
 
     public static final String TAG = "SUTBluetoothChatMain";
     public static final int MESSAGE_NOTIFY = 6;
@@ -71,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int CHOOSE_FILE = 2;
 
     public static final Object lock = new Object();
+    private com.sutmobiledev.bluetoothchat.Message message;
 
     private ChatController chatController;
     private BluetoothDevice connectingDevice;
@@ -107,17 +111,37 @@ public class MainActivity extends AppCompatActivity {
 
                     String writeMessage = new String(writeBuf);
                     chatMessages.add("Me: " + writeMessage);
+//                    save to db message sent by this user
+                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message.setName(connectingDevice.getName());
+                    message.setContactId(connectingDevice.getAddress().hashCode());
+                    message.setBelongsToCurrentUser(true);
+                    message.setBody(writeMessage);
+                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+                    db.addMessage(message);
                     chatAdapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
 
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message.setName(connectingDevice.getName());
+                    message.setContactId(connectingDevice.getAddress().hashCode());
+                    message.setBelongsToCurrentUser(false);
+                    message.setBody(readMessage);
+                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+                    db.addMessage(message);
+                    chatAdapter.notifyDataSetChanged();
                     chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
                     chatAdapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_DEVICE_OBJECT:
                     connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
+                    int contactId = connectingDevice.getAddress().hashCode();
+                    if (db.firsConection(contactId)) {
+                        db.addContact(new Contact(contactId,connectingDevice.getName(),"jkaldsjfk"));
+                    }
                     Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(),
                             Toast.LENGTH_SHORT).show();
                     break;
