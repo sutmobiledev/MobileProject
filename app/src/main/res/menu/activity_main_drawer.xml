@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group>
+        <item android:title="Current Chat"
+            android:id="@+id/nav_item_one">
+            </item>
+        <item android:id="@+id/nav_item_two"
+            android:title="Review Chats" />
+    </group>
+
+    <group android:id="@+id/group_menu">
+        <item android:id="@+id/ChangeUsername"
+            android:title="Change Username" />
+        <item android:id="@+id/ChangePhoto"
+            android:title="Change Photo" />
+        <item android:id="@+id/Appearence"
+            android:title="Appearence" />
+    </group>
+</menu>

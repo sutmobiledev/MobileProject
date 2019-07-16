@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int MESSAGE_DEVICE_OBJECT = 4;
     public static final int MESSAGE_TOAST = 5;
     public static int USER_ID = 0;
+    public static String profileAddress = null;
+    public static String user_name = new String("Unknown");
     public static final String DEVICE_OBJECT = "device_name";
 
     public static final String SEND_MESSAGE = "1654656513515613135156156132";
@@ -172,10 +174,16 @@ public class MainActivity extends AppCompatActivity {
 
         if (sharedPreferences.contains("USER_ID")) {
             USER_ID = sharedPreferences.getInt("USER_ID", 0);
+            profileAddress = sharedPreferences.getString("PROFILE_PIC",null);
+            user_name = sharedPreferences.getString("USER_NAME","Unknown");
         } else {
             USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
             sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
+            sharedPreferences.edit().putString("PROFILE_PIC", profileAddress).commit();
+            sharedPreferences.edit().putString("USER_NAME", user_name).commit();
         }
+        bluetoothAdapter.setName(user_name);
+
 
         //show bluetooth devices dialog when click connect button
         btnConnect.setOnClickListener(new View.OnClickListener() {
