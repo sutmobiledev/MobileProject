@@ -5,20 +5,31 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
+
+    private static final String DB_NAME = "contacts_messages_db";
+
     SQLiteDatabase db;
 
-    public DataBaseHelper(Context context) {
-        super(context, "DB", null, 1);
+    private static DataBaseHelper dataBaseHelper;
+    private DataBaseHelper(Context context) {
+        super(context, DB_NAME, null, 1);
+        dataBaseHelper = this;
     }
-
+    public static DataBaseHelper getInstance(Context context){
+        if (dataBaseHelper == null) {
+            return new DataBaseHelper(context.getApplicationContext());
+        }
+        return dataBaseHelper;
+    }
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE CONTACTS (ID INTEGER PRIMARY KEY, NAME TEXT, PICADD TEXT) ");
-        db.execSQL("CREATE TABLE MESSAGES (ID INTEGER PRIMARY KEY AUTOINCREMENT,CONTACTID INTEGER ,TYPE INTEGER,BODY TEXT, BELONGSTOCURRENTUSER INTEGER)");
+        db.execSQL("CREATE TABLE MESSAGES (ID INTEGER PRIMARY KEY AUTOINCREMENT, CONTACTID INTEGER ,TYPE INTEGER,BODY TEXT, BELONGSTOCURRENTUSER INTEGER)");
     }
 
     @Override
@@ -51,6 +62,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         contentValues.put("BELONGSTOCURRENTUSER", message.belongsToCurrentUser ? 1 : 0);
         this.db.insert("MESSAGES", null, contentValues);
+        Log.i("dododo","db is EZ");
         this.db.close();
 
     }
@@ -58,8 +70,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     public ArrayList<Message> getMessages(int contactId) {
         this.db = this.getReadableDatabase();
         ArrayList<Message> messages = null;
-        Cursor cursor = db.rawQuery("SELECT * FROM MESSAGES WHERE ID = " + contactId, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM MESSAGES WHERE CONTACTID ='"+contactId +"'" , null);
         if (cursor.moveToFirst()) {
+            Log.i("hi", "hello");
             messages = new ArrayList<>();
             do {
                 Message message = new Message();
@@ -78,6 +91,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         }
         db.close();
         cursor.close();
+        Log.i("is db working corect?", "EZ");
         return messages;
     }
 
@@ -99,6 +113,28 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return contacts;
+    }
+
+    public Contact getContact(int contactID) {
+        this.db = this.getReadableDatabase();
+        ArrayList<Contact> contacts = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT * FROM CONTACTS WHERE ID='" +contactID+"'" , null);
+        if (cursor.moveToFirst()) {
+            Log.i("salam","salam");
+            contacts = new ArrayList<>();
+            do {
+
+                Contact contact = new Contact();
+                contact.setId(cursor.getInt(0));
+                contact.setName(cursor.getString(1));
+                contact.setPicAdd(cursor.getString(2));
+
+                contacts.add(contact);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return contacts.get(0);
     }
 }
 
