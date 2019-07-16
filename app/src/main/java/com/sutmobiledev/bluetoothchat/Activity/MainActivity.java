@@ -1,4 +1,4 @@
-package com.sutmobiledev.bluetoothchat;
+package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.Manifest;
 import android.app.Activity;
@@ -29,6 +29,10 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.sutmobiledev.bluetoothchat.BlankFragment;
+import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.R;
 
 import java.io.BufferedInputStream;
 import java.io.File;
