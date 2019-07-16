@@ -23,16 +23,16 @@ public class ReviewActivity extends AppCompatActivity {
         dataBaseHelper = new DataBaseHelper(this);
 
         setContentView(R.layout.activity_review);
-        listView = findViewById(R.id.l);
+        listView = (ListView) findViewById(R.id.l);
         ArrayList<Contact> contacts = dataBaseHelper.getContacts();
         for (int i = 0; i < contacts.size(); i++) {
             cards.add(new Card(contacts.get(i)));
 
         }
-        stubList = findViewById(R.id.stub);
+        stubList = (ViewStub) findViewById(R.id.stub);
         stubList.inflate();
         stubList.setVisibility(View.VISIBLE);
-        listView = findViewById(R.id.l);
+        listView = (ListView) findViewById(R.id.l);
         listView.setAdapter(new ImageAdapter(this, R.layout.list_view, cards));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
