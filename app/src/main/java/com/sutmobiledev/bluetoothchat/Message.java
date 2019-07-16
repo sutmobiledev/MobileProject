@@ -19,7 +19,7 @@ public class Message {
 
     boolean belongsToCurrentUser;
 
-    Message(int type, String name, String body, String imageAdd, String  photoAdress,int contactId, boolean belongsToCurrentUser){
+    public Message(int type, String name, String body, String imageAdd, String photoAdress, int contactId, boolean belongsToCurrentUser){
         this.body = body;
         this.imageAdd = imageAdd;
         this.name = name;

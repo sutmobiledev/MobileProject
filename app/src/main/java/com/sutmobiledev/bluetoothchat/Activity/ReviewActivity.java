@@ -19,7 +19,7 @@ import com.sutmobiledev.bluetoothchat.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReviewActivity extends AppCompatActivity {
+public class ReviewActivity extends AppCompatActivity{
     private List<Card> cards = new ArrayList<>();
     private DataBaseHelper dataBaseHelper;
     private ListView listView;
@@ -52,4 +52,5 @@ public class ReviewActivity extends AppCompatActivity {
         });
 
     }
+
 }

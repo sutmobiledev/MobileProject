@@ -9,6 +9,8 @@ import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.sutmobiledev.bluetoothchat.DataBaseHelper;
+import com.sutmobiledev.bluetoothchat.Message;
 import com.sutmobiledev.bluetoothchat.R;
 
 public class EnterActivity extends Activity {

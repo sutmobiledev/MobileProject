@@ -31,7 +31,7 @@
             android:layout_height="40dp"
             android:layout_width="match_parent"
             android:id="@+id/imageView1"
-            android:src="@drawable/back"
+            android:src="@drawable/unknown"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true">
         </ImageView>
