@@ -418,7 +418,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
         listView.setAdapter(chatAdapter);
         
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -430,7 +430,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -445,16 +445,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.Chat) {
-            // Handle the camera action
-        } else if (id == R.id.Review) {
+        if (id == R.id.Review) {
             startActivity(new Intent(MainActivity.this, ReviewActivity.class));
-
-        } else if (id == R.id.ChangeUsername) {
-
-        } else if (id == R.id.ChangePhoto) {
-
-        } else if (id == R.id.Appearence) {
 
         }
 
