@@ -1,5 +1,6 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -11,10 +12,12 @@ import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -36,6 +39,7 @@ import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
+import com.sutmobiledev.bluetoothchat.MessageAdapter;
 import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.User;
 import com.sutmobiledev.bluetoothchat.file.FileManager;
@@ -52,8 +56,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private ListView listView;
     private Dialog dialog;
     private TextInputLayout inputLayout;
-    private ArrayAdapter<String> chatAdapter;
-    private ArrayList<String> chatMessages;
+    ArrayList<com.sutmobiledev.bluetoothchat.Message> messages;
+    private MessageAdapter messageAdapter;
     private BluetoothAdapter bluetoothAdapter;
     private DataBaseHelper db;
     ImageView profilePhoto;
@@ -89,8 +93,31 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_FILE_SEND:
+                    String args = (String)msg.obj;
+
+                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message.setName(bluetoothAdapter.getName());
+                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
+                    message.setBelongsToCurrentUser(true);
+                    message.setBody(args);
+                    message.setType(msg.arg1);
+                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args);
+                    db.addMessage(message);
+                    messages.add(message);
+                    messageAdapter.add(message);
                     break;
                 case MESSAGE_FILE_RECEIVE:
+                    String args1 = (String)msg.obj;
+                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message.setName(bluetoothAdapter.getName());
+                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
+                    message.setBelongsToCurrentUser(false);
+                    message.setBody(args1);
+                    message.setType(msg.arg1);
+                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args1);
+                    db.addMessage(message);
+                    messages.add(message);
+                    messageAdapter.add(message);
                     break;
                 case MESSAGE_NOTIFY:
                     Log.d(TAG, "handleMessage: Notify Message is received.");
@@ -117,7 +144,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     byte[] writeBuf = (byte[]) msg.obj;
 
                     String writeMessage = new String(writeBuf);
-                    chatMessages.add("Me: " + writeMessage);
+                    //TODO
+                    //add image address
+//                    chatMessages.add("Me: " + writeMessage);
 //                    save to db message sent by this user
                     message = new com.sutmobiledev.bluetoothchat.Message();
                     message.setName(bluetoothAdapter.getName());
@@ -126,11 +155,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     message.setBody(writeMessage);
                     message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
                     db.addMessage(message);
-                    chatAdapter.notifyDataSetChanged();
+                    messages.add(message);
+                    messageAdapter.add(message);
+//                    chatAdapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
-
+                    //TODO
+                    //add imageadress
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     message = new com.sutmobiledev.bluetoothchat.Message();
                     message.setName(connectingDevice.getName());
@@ -139,9 +171,11 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     message.setBody(readMessage);
                     message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
                     db.addMessage(message);
-                    chatAdapter.notifyDataSetChanged();
-                    chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
-                    chatAdapter.notifyDataSetChanged();
+                    messages.add(message);
+                    messageAdapter.add(message);
+//                    chatAdapter.notifyDataSetChanged();
+//                    chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
+//                    chatAdapter.notifyDataSetChanged();
                     break;
                 case MESSAGE_DEVICE_OBJECT:
                     connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
@@ -161,6 +195,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                             Toast.LENGTH_SHORT).show();
                     break;
             }
+            listView.setSelection(listView.getCount() - 1);
+            listView.setAdapter(messageAdapter);
             return false;
         }
     });
@@ -345,8 +381,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     // Get the path
                     String path = uri.getPath();
                     Log.d(TAG, "File Path: " + path);
-
-                    fileManager.sendFile(path, "");
+                    //TODO
+                    fileManager.sendFile(path, 0);
                 }
                 break;
 
@@ -405,8 +441,11 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.user_name).apply();
         }
         bluetoothAdapter.setName(User.user_name);
-
-
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+        messageAdapter = new MessageAdapter(this);
+        listView = (ListView) findViewById(R.id.list);
+        listView.setSelection(listView.getCount() - 1);
+        listView.setAdapter(messageAdapter);
         //show bluetooth devices dialog when click connect button
         btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -416,9 +455,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         });
 
         //set chat adapter
-        chatMessages = new ArrayList<String>();
-        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
-        listView.setAdapter(chatAdapter);
+//        chatMessages = new ArrayList<String>();
+//        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
+//        listView.setAdapter(chatAdapter);
         
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
