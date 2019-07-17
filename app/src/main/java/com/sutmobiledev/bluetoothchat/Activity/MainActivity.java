@@ -1,6 +1,5 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -10,17 +9,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -36,19 +32,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
-import com.sutmobiledev.bluetoothchat.Card;
 import com.sutmobiledev.bluetoothchat.ChatController;
-import com.sutmobiledev.bluetoothchat.ChatsRe;
-import com.sutmobiledev.bluetoothchat.Contact;
-import com.sutmobiledev.bluetoothchat.DataBaseHelper;
-import com.sutmobiledev.bluetoothchat.ImageAdapter;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.R;
+import com.sutmobiledev.bluetoothchat.file.FileManager;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
@@ -66,29 +55,30 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private DataBaseHelper db;
 
     public static final String TAG = "SUTBluetoothChatMain";
-    public static final int MESSAGE_NOTIFY = 6;
 
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_OBJECT = 4;
     public static final int MESSAGE_TOAST = 5;
+    public static final int MESSAGE_NOTIFY = 6;
+    public static final int MESSAGE_FILE_SEND = 7;
+    public static final int MESSAGE_FILE_RECEIVE = 8;
+
     public static int USER_ID = 0;
     public static String profileAddress = null;
     public static String user_name = new String("Unknown");
     public static final String DEVICE_OBJECT = "device_name";
 
-    public static final String SEND_MESSAGE = "1654656513515613135156156132";
-    public static final String SEND_FILE = "3165165156464461354616646";
-    public static final String SEND_NOTIFY = "3213254865165498451032";
-
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-    private static final int CHOOSE_FILE = 2;
+    public static final int CHOOSE_FILE = 2;
 
     public static final Object lock = new Object();
     private com.sutmobiledev.bluetoothchat.Message message;
 
-    private ChatController chatController;
+    public FileManager fileManager;
+    public ChatController chatController;
+
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
     private SharedPreferences sharedPreferences;
@@ -97,6 +87,10 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
+                case MESSAGE_FILE_SEND:
+                    break;
+                case MESSAGE_FILE_RECEIVE:
+                    break;
                 case MESSAGE_NOTIFY:
                     Log.d(TAG, "handleMessage: Notify Message is received.");
                     synchronized (MainActivity.lock) {
@@ -125,8 +119,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     chatMessages.add("Me: " + writeMessage);
 //                    save to db message sent by this user
                     message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(connectingDevice.getName());
-                    message.setContactId(connectingDevice.getAddress().hashCode());
+                    message.setName(bluetoothAdapter.getName());
+                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
                     message.setBelongsToCurrentUser(true);
                     message.setBody(writeMessage);
                     message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
@@ -150,10 +144,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     break;
                 case MESSAGE_DEVICE_OBJECT:
                     connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
+
+                    assert connectingDevice != null;
+
                     int contactId = connectingDevice.getAddress().hashCode();
                     if (db.firsConection(contactId)) {
                         db.addContact(new Contact(contactId,connectingDevice.getName(),"jkaldsjfk"));
                     }
+
                     Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(),
                             Toast.LENGTH_SHORT).show();
                     break;
@@ -223,7 +221,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         listView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long id) {
                 bluetoothAdapter.cancelDiscovery();
                 String info = ((TextView) view).getText().toString();
                 String address = info.substring(info.length() - 17);
@@ -271,7 +269,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 transaction.replace(R.id.frame, blankFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
-                showFileChooser();
+                fileManager.showFileChooser();
             }
         });
 
@@ -295,69 +293,11 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         }
 
         if (message.length() > 0) {
-            byte[] send = SEND_MESSAGE.getBytes();
+            byte[] send = ChatController.SEND_MESSAGE.getBytes();
             chatController.write(send, 0);
 
             send = message.getBytes();
             chatController.write(send, 1);
-        }
-    }
-
-    public void showFileChooser() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10);
-
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        try {
-            startActivityForResult(
-                    Intent.createChooser(intent, "Select a File to Upload"),
-                    CHOOSE_FILE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, "Please install a File Manager.",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void sendFile(String file_name, String type) {
-        if (chatController.getState() != ChatController.STATE_CONNECTED) {
-            Toast.makeText(this, "Connection was lost!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        File out = new File(file_name);
-        if (out.length() > 0) {
-            // Message type
-            byte[] send = SEND_FILE.getBytes();
-            chatController.write(send, 0);
-
-            // length
-            send = String.valueOf(out.length()).getBytes();
-            chatController.write(send, 0);
-
-            // file type
-            send = type.getBytes();
-            chatController.write(send, 0);
-
-            // file name
-            String[] temp = file_name.split("/");
-            send = temp[temp.length - 1].getBytes();
-            chatController.write(send, 0);
-
-            // content
-            try {
-                send = new byte[8 * 1024];
-                FileInputStream fin = new FileInputStream(out);
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(fin, 8 * 1024);
-
-                while ((bufferedInputStream.read(send)) != -1)
-                    chatController.write(send, 0);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -370,6 +310,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         } else {
             chatController = new ChatController(this, handler);
         }
+
+        fileManager = FileManager.getInstance().init(this, handler);
+        db = DataBaseHelper.getInstance(this);
     }
 
     @Override
@@ -402,7 +345,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     String path = uri.getPath();
                     Log.d(TAG, "File Path: " + path);
 
-                    sendFile(path, "");
+                    fileManager.sendFile(path, "");
                 }
                 break;
 
@@ -435,9 +378,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             }
         }
     };
-    public void make_toast(){
-        Toast.makeText(this, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
-    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -478,20 +420,20 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         chatMessages = new ArrayList<String>();
         chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
         listView.setAdapter(chatAdapter);
-        
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -519,7 +461,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

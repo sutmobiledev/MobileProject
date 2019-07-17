@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.Activity.MainActivity;
 
@@ -25,6 +26,10 @@ import java.io.OutputStream;
 import java.util.UUID;
 
 public class ChatController {
+    public static final String SEND_MESSAGE = "1654656513515613135156156132";
+    public static final String SEND_FILE = "3165165156464461354616646";
+    public static final String SEND_NOTIFY = "3213254865165498451032";
+
     private static final String APP_NAME = "BluetoothChatApp";
     private static final UUID MY_UUID = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
     private static final String TAG = "SUTBluetoothChatContr";
@@ -174,7 +179,7 @@ public class ChatController {
         r = connectedThread;
 
 
-        r.write(MainActivity.SEND_NOTIFY.getBytes(), 0);
+        r.write(SEND_NOTIFY.getBytes(), 0);
 
         Log.d(TAG, "sendNotify: done.");
     }
@@ -390,7 +395,7 @@ public class ChatController {
 
                 Log.d(TAG, "run: " + new String(buffer));
                 String code = new String(buffer);
-                if (code.startsWith(MainActivity.SEND_MESSAGE)) {
+                if (code.startsWith(SEND_MESSAGE)) {
                     byte[] buffer_read = new byte[1024];
                     int nbytes;
                     try {
@@ -408,94 +413,97 @@ public class ChatController {
 
                     // Send the obtained bytes to the UI Activity
                     handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1, buffer_read).sendToTarget();
-                } else if (code.startsWith(MainActivity.SEND_NOTIFY)) {
+                } else if (code.startsWith(SEND_NOTIFY)) {
                         handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0,
                                 null).sendToTarget();
-                } else if (code.startsWith(MainActivity.SEND_FILE)) {
+                } else if (code.startsWith(SEND_FILE)) {
                     sendNotify();
 
                     int byteCnt = 0;
-                    byte[] buffer_Length = new byte[1024];
+                    byte[] temp, buffer_Length = new byte[1024];
                     try {
                         byteCnt = inputStream.read(buffer_Length);
+
                         sendNotify();
+
+                        temp = new byte[byteCnt];
+                        System.arraycopy(buffer_Length, 0, temp, 0, byteCnt);
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
                         ChatController.this.start();
                         break;
                     }
+                    int length = Integer.parseInt(new String(temp));
 
-                    int length = Integer.parseInt(new String(buffer_Length));
                     byte[] buffer_Type = new byte[1024];
                     try {
-                        inputStream.read(buffer_Type);
+                        byteCnt = inputStream.read(buffer_Type);
+
                         sendNotify();
+
+                        temp = new byte[byteCnt];
+                        System.arraycopy(buffer_Type, 0, temp, 0, byteCnt);
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
                         ChatController.this.start();
                         break;
                     }
-                    String type = new String(buffer_Type);
+                    String type = new String(temp);
+
                     byte[] buffer_Name = new byte[1024];
                     try {
-                        inputStream.read(buffer_Name);
+                        byteCnt = inputStream.read(buffer_Name);
+
                         sendNotify();
+
+                        temp = new byte[byteCnt];
+                        System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
                         ChatController.this.start();
                         break;
                     }
-                    String name = new String(buffer_Name);
-                    // Create output streams & write to file
-//                        FileOutputStream fos = new FileOutputStream(
-//                                Environment.getExternalStorageDirectory()
-//                                        + "/"+name);
-                    byte[] buffer_file = new byte[8 * 1024];
-                    int bytesRead;
-                    int current = 0;
+                    String name = new String(temp);
 
                     try {
-                        if (length > 8 * 1024) {
-                            bytesRead = inputStream.read(buffer_file, 0, 8 * 1024);
-                        } else {
-                            bytesRead = inputStream.read(buffer_file, 0, length);
-                        }
-                        Log.d(TAG, "bytesRead first time =" + bytesRead);
-                        current = bytesRead;
-                        save_file(name, buffer_file);
+                        byte[] buffer_file = new byte[8 * 1024];
+                        byteCnt = inputStream.read(buffer_file);
 
-                        while (length - current > 0) {
+                        sendNotify();
+
+                        temp = new byte[byteCnt];
+                        System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
+                        save_file(name, temp, true);
+
+                        length -= byteCnt;
+
+                        while (length > 0) {
                             buffer_file = new byte[8 * 1024];
-                            Log.d(TAG, "do-while -- current: " + current);
-                            if (length - current > 8 * 1024) {
-                                bytesRead = inputStream.read(buffer_file, 0,
-                                        8 * 1024);
-                            } else {
-                                bytesRead = inputStream.read(buffer_file, 0,
-                                        length - current);
-                            }
-                            Log.d(TAG, "bytesRead: =" + bytesRead);
+                            byteCnt = inputStream.read(buffer_file);
 
-                            if (bytesRead >= 0)
-                                current += bytesRead;
-                            save_file(name, buffer_file);
+                            sendNotify();
+
+                            temp = new byte[byteCnt];
+                            System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
+                            save_file(name, temp, false);
+
+                            length -= byteCnt;
                         }
-//                            save_file(name,buffer);
                     } catch (IOException e) {
-                        e.printStackTrace();
-                        Log.d(TAG, "do while end:-- buffer len= "
-                                + buffer.length + "  current: " + current);
-
-//                            fos.write(buffer);
-                        Log.d(TAG, "fos.write success! buffer: "
-                                + buffer.length + "  current: " + current);
-
-//                            fos.flush();
-//                            fos.close();
+                        connectionLost();
+                        // Start the service over to restart listening mode
+                        ChatController.this.start();
+                        break;
                     }
+
+                    String[] obj = new String[2];
+                    obj[0] = name;
+                    obj[1] = type;
+
+                    handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
                 }
             }
         }
@@ -518,21 +526,24 @@ public class ChatController {
                 e.printStackTrace();
             }
         }
-        public void save_file(String name,byte[] bytes){
+
+        public void save_file(String name, byte[] bytes, boolean firstTime) {
             File apkStorage = null;
             File outputFile = null;
             if (new CheckForSDCard().isSDCardPresent()) {
 
                 apkStorage = new File(
-                        Environment.getExternalStorageDirectory() + "/Download"
+                        Environment.getExternalStorageDirectory() + "/BluetoothChat"
                 );
-            } else
-                mainActivity.make_toast();
+            } else {
+                Toast.makeText(mainActivity, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
+                mainActivity.finish();
+            }
 
             //If File is not present create directory
             if (!apkStorage.exists()) {
                 apkStorage.mkdir();
-                Log.e("tag", "Directory Created.");
+                Log.d(TAG, "save_file: Directory Created.");
             }
 
             outputFile = new File(apkStorage, name);//Create Output file in Main File
@@ -544,7 +555,15 @@ public class ChatController {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Log.e("tag", "File Created");
+                Log.d(TAG, "save_file: File Created");
+            } else if (firstTime) {
+                try {
+                    outputFile.delete();
+                    outputFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Log.d(TAG, "save_file: File Created");
             }
 
             FileOutputStream fos = null;//Get OutputStream for NewFile Location
@@ -554,47 +573,16 @@ public class ChatController {
                 e.printStackTrace();
             }
 
-//                InputStream is = c.getInputStream();//Get InputStream for connection
-//                byte[] buffer = new byte[1024];//Set buffer type
-//                int len1 = 0;//init length
-//            File file = new File("/sdcard/Download/annie-spratt-01Wa3tPoQQ8-unsplash.jpg");
-//            int size = (int) file.length();
-//            byte[] bytes = new byte[size];
-//            try {
-//                BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));
-//                buf.read(bytes, 0, bytes.length);
-//                buf.close();
-//            } catch (FileNotFoundException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
-//                File fi = new File("/Users/sana/Desktop/here");
-//                byte[] fileContent = null;
-//                try {
-//                    fileContent = Files.readAllBytes(fi.toPath());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+
 
             try {
-                fos.write(bytes, 0, bytes.length);//Write new file
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                assert fos != null;
 
-
-            //Close all connection after doing task
-            try {
+                fos.write(bytes, 0, bytes.length);
                 fos.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//                is.close();
-//
-
         }
     }
 }

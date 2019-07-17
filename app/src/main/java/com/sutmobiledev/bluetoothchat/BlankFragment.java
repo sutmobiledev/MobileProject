@@ -55,7 +55,7 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
             case R.id.btn_voice:
                 break;
             case R.id.btn_file:
-                main.showFileChooser();
+                main.fileManager.showFileChooser();
                 break;
         }
     }
