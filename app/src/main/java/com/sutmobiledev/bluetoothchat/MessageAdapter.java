@@ -112,12 +112,14 @@ public class MessageAdapter extends BaseAdapter{
             else if(message.getType() == Message.TYPE_TEXT){
                 convertView = messageInflater.inflate(R.layout.their_message, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
+                if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
                     String folderpath1 = folder.getAbsolutePath().toString().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
                 } else {
                     Log.e("Hereee", "image not exists");
+                }
                 }
                 holder.avatar = imageView;
                 holder.name = (TextView) convertView.findViewById(R.id.name);
