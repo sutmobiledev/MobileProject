@@ -8,7 +8,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,8 +35,8 @@ import com.sutmobiledev.bluetoothchat.ChatController;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.R;
-import com.sutmobiledev.bluetoothchat.file.FileManager;
 import com.sutmobiledev.bluetoothchat.User;
+import com.sutmobiledev.bluetoothchat.file.FileManager;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -268,7 +267,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 transaction.replace(R.id.frame, blankFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
-                fileManager.showFileChooser();
+                //fileManager.showFileChooser();
             }
         });
 
@@ -395,14 +394,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_ID")) {
             User.USER_ID = getSharedPreferences("post",MODE_PRIVATE).getInt("USER_ID", 0);
             User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
-            user.user_name = getSharedPreferences("post",MODE_PRIVATE).getString("USER_NAME","Unknown");
+            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
         } else {
             User.USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
             getSharedPreferences("post",MODE_PRIVATE).edit().putInt("USER_ID", User.USER_ID).apply();
             getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("USER_NAME", user.user_name).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.user_name).apply();
         }
-        bluetoothAdapter.setName(user.user_name);
+        bluetoothAdapter.setName(User.user_name);
 
 
         //show bluetooth devices dialog when click connect button
@@ -417,20 +416,20 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         chatMessages = new ArrayList<String>();
         chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
         listView.setAdapter(chatAdapter);
-        
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -458,7 +457,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
