@@ -74,7 +74,7 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
                 holder.messageBody.setText(message.getText());
             }
-            else{
+            else if (message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO || message.getType() == Message.TYPE_VOICE){
                 convertView = messageInflater.inflate(R.layout.my_message_file, null);
                 holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
                 convertView.setTag(holder);
@@ -127,7 +127,7 @@ public class MessageAdapter extends BaseAdapter{
                 holder.name.setText(message.getName());
                 holder.messageBody.setText(message.getText());
             }
-            else {
+            else if(message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO || message.getType() == Message.TYPE_VOICE){
                 convertView = messageInflater.inflate(R.layout.their_message_file, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
                 File folder = new File(message.getImageAdd());

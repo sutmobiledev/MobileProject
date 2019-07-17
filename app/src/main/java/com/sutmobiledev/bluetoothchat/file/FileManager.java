@@ -68,7 +68,7 @@ public class FileManager {
 
     }
 
-    public void sendFile(String file_name, String type) {
+    public void sendFile(String file_name, int type) {
         if (mainActivity.chatController.getState() != ChatController.STATE_CONNECTED) {
             Toast.makeText(mainActivity, "Connection was lost!", Toast.LENGTH_SHORT).show();
             return;
@@ -76,11 +76,9 @@ public class FileManager {
 
         File out = new File(file_name);
         if (out.length() > 0) {
-            String[] obj = new String[2];
-            obj[0] = file_name;
-            obj[1] = type;
 
-            handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
+
+            handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, type,0,file_name).sendToTarget();
 
             // Message type
             byte[] send = ChatController.SEND_FILE.getBytes();
@@ -91,7 +89,7 @@ public class FileManager {
             mainActivity.chatController.write(send, 0);
 
             // file type
-            send = type.getBytes();
+            send = String.valueOf(type).getBytes();
             mainActivity.chatController.write(send, 0);
 
             // file name
