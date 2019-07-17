@@ -35,7 +35,7 @@ public class FileManager {
 
     public void showFileChooser() {
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10);
+            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Manifest.permission.WRITE_EXTERNAL_STORAGE.hashCode());
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
@@ -50,6 +50,22 @@ public class FileManager {
             Toast.makeText(mainActivity, "Please install a File Manager.",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void recorderAudioMessage() {
+        if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.RECORD_AUDIO}, Manifest.permission.RECORD_AUDIO.hashCode());
+
+        if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_DENIED) {
+            Toast.makeText(mainActivity, "Can't record audio. Access Denied!!", Toast.LENGTH_SHORT);
+        }
+    }
+
+    public void recorderVideoMessage() {
+        if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.CAMERA}, Manifest.permission.CAMERA.hashCode());
+
+
     }
 
     public void sendFile(String file_name, String type) {
