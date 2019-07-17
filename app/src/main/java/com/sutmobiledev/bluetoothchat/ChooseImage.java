@@ -28,7 +28,7 @@ public class ChooseImage {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
         File wallpaperDirectory = new File(
-                Environment.getExternalStorageDirectory() + "/Download");
+                Environment.getExternalStorageDirectory() + "/BluetoothChat");
         if (!wallpaperDirectory.exists()) {
             wallpaperDirectory.mkdirs();
         }

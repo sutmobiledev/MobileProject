@@ -37,6 +37,7 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:id="@+id/user"
         android:text="@string/nav_header_title"
+        android:textSize="25dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
 </LinearLayout>

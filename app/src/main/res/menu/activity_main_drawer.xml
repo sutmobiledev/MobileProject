@@ -2,9 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group>
         <item android:title="Start Chating"
+            android:icon="@drawable/pen"
             android:id="@+id/Chat">
             </item>
         <item android:id="@+id/Review"
+            android:icon="@drawable/read"
             android:title="Review Chats" />
     </group>
 

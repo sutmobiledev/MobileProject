@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,6 +40,7 @@ import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.User;
 import com.sutmobiledev.bluetoothchat.file.FileManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
@@ -53,8 +56,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private ArrayList<String> chatMessages;
     private BluetoothAdapter bluetoothAdapter;
     private DataBaseHelper db;
-    private User user= new User();
-
+    ImageView profilePhoto;
+    TextView nameTextView;
     public static final String TAG = "SUTBluetoothChatMain";
 
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -425,6 +428,30 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        profilePhoto = (ImageView) header.findViewById(R.id.imageView1);
+        nameTextView = (TextView) header.findViewById(R.id.user);
+        if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
+            Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
+            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+        } else {
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME",User.user_name).apply();
+        }
+        if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
+            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
+        } else {
+            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
+        }
+        nameTextView.setText(User.user_name);
+        if(User.getProfileAddress()!= null) {
+            File folder2 = new File(User.getProfileAddress());
+            if (folder2.exists()) {
+                String folderpath3 = folder2.getAbsolutePath().toString().trim();
+                profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
+            } else {
+                Log.e("Hereee", "image not exists");
+            }
+        }
     }
 
     @Override
