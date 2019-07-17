@@ -1,6 +1,8 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,7 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewStub;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.sutmobiledev.bluetoothchat.Card;
 import com.sutmobiledev.bluetoothchat.ChatsRe;
@@ -21,16 +25,20 @@ import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.ImageAdapter;
 import com.sutmobiledev.bluetoothchat.R;
+import com.sutmobiledev.bluetoothchat.User;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class ReviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private List<Card> cards = new ArrayList<>();
     private DataBaseHelper dataBaseHelper;
     private ListView listView;
     private ViewStub stubList;
-
+    ImageView profilePhoto;
+    TextView nameTextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +76,30 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        profilePhoto = (ImageView) header.findViewById(R.id.imageView1);
+        nameTextView = (TextView) header.findViewById(R.id.user);
+        if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
+            Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
+            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+        } else {
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME",User.user_name).apply();
+        }
+        if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
+            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
+        } else {
+            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.user_name).apply();
+        }
+        nameTextView.setText(User.user_name);
+        if(User.getProfileAddress()!= null) {
+            File folder2 = new File(User.getProfileAddress());
+            if (folder2.exists()) {
+                String folderpath3 = folder2.getAbsolutePath().toString().trim();
+                profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
+            } else {
+                Log.e("Hereee", "image not exists");
+            }
+        }
     }
 
     @Override
@@ -92,6 +124,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
         } else if (id == R.id.Review) {
 
         } else if (id == R.id.ChangeUsername) {
+            startActivity(new Intent(ReviewActivity.this, ChooseActivity.class));
 
         } else if (id == R.id.ChangePhoto) {
 

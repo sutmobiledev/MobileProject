@@ -45,6 +45,7 @@ import com.sutmobiledev.bluetoothchat.ImageAdapter;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.R;
+import com.sutmobiledev.bluetoothchat.User;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private ArrayList<String> chatMessages;
     private BluetoothAdapter bluetoothAdapter;
     private DataBaseHelper db;
+    private User user= new User();
 
     public static final String TAG = "SUTBluetoothChatMain";
     public static final int MESSAGE_NOTIFY = 6;
@@ -73,9 +75,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_OBJECT = 4;
     public static final int MESSAGE_TOAST = 5;
-    public static int USER_ID = 0;
-    public static String profileAddress = null;
-    public static String user_name = new String("Unknown");
     public static final String DEVICE_OBJECT = "device_name";
 
     public static final String SEND_MESSAGE = "1654656513515613135156156132";
@@ -91,7 +90,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private ChatController chatController;
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
-    private SharedPreferences sharedPreferences;
     private Handler handler = new Handler(new Handler.Callback() {
 
         @Override
@@ -444,8 +442,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         setContentView(R.layout.activity_main);
         findViewsByIds();
 
-        sharedPreferences = getPreferences(MODE_PRIVATE);
-
         //check device support bluetooth or not
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
@@ -453,17 +449,17 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             finish();
         }
 
-        if (sharedPreferences.contains("USER_ID")) {
-            USER_ID = sharedPreferences.getInt("USER_ID", 0);
-            profileAddress = sharedPreferences.getString("PROFILE_PIC",null);
-            user_name = sharedPreferences.getString("USER_NAME","Unknown");
+        if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_ID")) {
+            User.USER_ID = getSharedPreferences("post",MODE_PRIVATE).getInt("USER_ID", 0);
+            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
+            user.user_name = getSharedPreferences("post",MODE_PRIVATE).getString("USER_NAME","Unknown");
         } else {
-            USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
-            sharedPreferences.edit().putInt("USER_ID", USER_ID).commit();
-            sharedPreferences.edit().putString("PROFILE_PIC", profileAddress).commit();
-            sharedPreferences.edit().putString("USER_NAME", user_name).commit();
+            User.USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
+            getSharedPreferences("post",MODE_PRIVATE).edit().putInt("USER_ID", User.USER_ID).apply();
+            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
+            getSharedPreferences("post",MODE_PRIVATE).edit().putString("USER_NAME", user.user_name).apply();
         }
-        bluetoothAdapter.setName(user_name);
+        bluetoothAdapter.setName(user.user_name);
 
 
         //show bluetooth devices dialog when click connect button
@@ -478,7 +474,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         chatMessages = new ArrayList<String>();
         chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
         listView.setAdapter(chatAdapter);
-        
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);

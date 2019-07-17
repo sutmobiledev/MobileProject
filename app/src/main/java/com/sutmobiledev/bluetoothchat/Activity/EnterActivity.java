@@ -26,7 +26,7 @@ public class EnterActivity extends Activity {
         rl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(EnterActivity.this, ChooseActivity.class));
+                startActivity(new Intent(EnterActivity.this, ReviewActivity.class));
             }
         });
     }
