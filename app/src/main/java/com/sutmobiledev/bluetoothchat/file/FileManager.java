@@ -3,6 +3,7 @@ package com.sutmobiledev.bluetoothchat.file;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaRecorder;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -19,8 +20,13 @@ public class FileManager {
     private static final FileManager ourInstance = new FileManager();
     private MainActivity mainActivity;
     private Handler handler;
+    private MediaRecorder audioRecorder;
 
     private FileManager() {
+        /*audioRecorder = new MediaRecorder();
+        audioRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+        audioRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        audioRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);*/
     }
 
     public static FileManager getInstance() {
@@ -34,8 +40,17 @@ public class FileManager {
     }
 
     public void showFileChooser() {
+        if (mainActivity.chatController.getState() != ChatController.STATE_CONNECTED) {
+            Toast.makeText(mainActivity, "Connection was lost!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Manifest.permission.WRITE_EXTERNAL_STORAGE.hashCode());
+            ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 10);
+
+        if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+            Toast.makeText(mainActivity, "Can't access to storage. Access Denied!!", Toast.LENGTH_SHORT).show();
+        }
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
@@ -57,7 +72,7 @@ public class FileManager {
             ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.RECORD_AUDIO}, Manifest.permission.RECORD_AUDIO.hashCode());
 
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_DENIED) {
-            Toast.makeText(mainActivity, "Can't record audio. Access Denied!!", Toast.LENGTH_SHORT);
+            Toast.makeText(mainActivity, "Can't record audio. Access Denied!!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -65,7 +80,9 @@ public class FileManager {
         if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(mainActivity, new String[]{Manifest.permission.CAMERA}, Manifest.permission.CAMERA.hashCode());
 
-
+        if (ContextCompat.checkSelfPermission(mainActivity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
+            Toast.makeText(mainActivity, "Can't record video. Access Denied!!", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void sendFile(String file_name, int type) {

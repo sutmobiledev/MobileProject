@@ -18,7 +18,6 @@ import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -91,6 +90,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         @Override
         public boolean handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: Called:  " + String.valueOf(msg.what));
             switch (msg.what) {
                 case MESSAGE_FILE_SEND:
                     String args = (String)msg.obj;
@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     synchronized (MainActivity.lock) {
                         MainActivity.lock.notify();
                     }
+                    break;
                 case MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case ChatController.STATE_CONNECTED:
@@ -300,8 +301,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         btnFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Fragment blankFragment = new BlankFragment();
-                ((BlankFragment) blankFragment).setMain(MainActivity.this);
+                BlankFragment blankFragment = new BlankFragment();
+                blankFragment.setMain(MainActivity.this);
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, blankFragment);
                 transaction.addToBackStack(null);
@@ -350,6 +351,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         fileManager = FileManager.getInstance().init(this, handler);
         db = DataBaseHelper.getInstance(this);
+        messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
     }
 
     @Override
@@ -443,7 +445,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         bluetoothAdapter.setName(User.user_name);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         messageAdapter = new MessageAdapter(this);
-        listView = (ListView) findViewById(R.id.list);
+        listView = findViewById(R.id.list);
         listView.setSelection(listView.getCount() - 1);
         listView.setAdapter(messageAdapter);
         //show bluetooth devices dialog when click connect button
@@ -458,18 +460,18 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 //        chatMessages = new ArrayList<String>();
 //        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
 //        listView.setAdapter(chatAdapter);
-        
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         View header = navigationView.getHeaderView(0);
-        profilePhoto = (ImageView) header.findViewById(R.id.imageView1);
-        nameTextView = (TextView) header.findViewById(R.id.user);
+        profilePhoto = header.findViewById(R.id.imageView1);
+        nameTextView = header.findViewById(R.id.user);
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
             Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
             User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
@@ -485,7 +487,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         if(User.getProfileAddress()!= null) {
             File folder2 = new File(User.getProfileAddress());
             if (folder2.exists()) {
-                String folderpath3 = folder2.getAbsolutePath().toString().trim();
+                String folderpath3 = folder2.getAbsolutePath().trim();
                 profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
             } else {
                 Log.e("Hereee", "image not exists");
@@ -495,7 +497,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -515,7 +517,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

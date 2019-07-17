@@ -213,9 +213,9 @@ public class ChatController {
         public Handler writeHandler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(Message msg) {
-                Log.d(TAG, "handleMessage: Before");
+                Log.d(TAG, "writeHandler: Before");
                 while (ready) ;
-                Log.d(TAG, "handleMessage: After");
+                Log.d(TAG, "writeHandler: After");
                 bufferToWrite = ((byte[]) msg.obj).clone();
                 shouldSend = msg.arg1;
                 ready = true;
@@ -236,8 +236,7 @@ public class ChatController {
 
 
                         r.write(bufferToWrite, shouldSend);
-                        Log.d(TAG, "write: " + new String(bufferToWrite));
-                        Log.d(TAG, "write: " + MainActivity.lock.toString());
+                        Log.d(TAG, "WriteThread.write: " + new String(bufferToWrite));
 
                         try {
                             ready = false;
@@ -414,20 +413,20 @@ public class ChatController {
                     // Send the obtained bytes to the UI Activity
                     handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1, buffer_read).sendToTarget();
                 } else if (code.startsWith(SEND_NOTIFY)) {
-                        handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0,
-                                null).sendToTarget();
+                    handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0, null).sendToTarget();
+                    Log.d(TAG, "run: Notify Received");
                 } else if (code.startsWith(SEND_FILE)) {
-                    sendNotify();
-
                     int byteCnt = 0;
                     byte[] temp, buffer_Length = new byte[1024];
                     try {
+                        sendNotify();
                         byteCnt = inputStream.read(buffer_Length);
 
                         sendNotify();
 
                         temp = new byte[byteCnt];
                         System.arraycopy(buffer_Length, 0, temp, 0, byteCnt);
+                        Log.d(TAG, "run: LEN: " + new String(temp));
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
@@ -444,6 +443,7 @@ public class ChatController {
 
                         temp = new byte[byteCnt];
                         System.arraycopy(buffer_Type, 0, temp, 0, byteCnt);
+                        Log.d(TAG, "run: TYPE: " + new String(temp));
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
@@ -460,6 +460,7 @@ public class ChatController {
 
                         temp = new byte[byteCnt];
                         System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
+                        Log.d(TAG, "run: NAME: " + new String(temp));
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
@@ -504,13 +505,15 @@ public class ChatController {
                     obj[1] = type;
 
                     handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
+                } else {
+                    assert false;
                 }
             }
         }
 
         // write to OutputStream
         public synchronized void write(byte[] buffer, int shouldWrite) {
-            Log.d(TAG, "write: " + new String(buffer));
+            Log.d(TAG, "ReadWriteThread.write: " + new String(buffer));
             try {
                 outputStream.write(buffer);
                 if (shouldWrite == 1)
@@ -533,7 +536,7 @@ public class ChatController {
             if (new CheckForSDCard().isSDCardPresent()) {
 
                 apkStorage = new File(
-                        Environment.getExternalStorageDirectory() + "/BluetoothChat"
+                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/BluetoothChat"
                 );
             } else {
                 Toast.makeText(mainActivity, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
