@@ -1,5 +1,7 @@
 package com.sutmobiledev.bluetoothchat;
 
+import android.widget.VideoView;
+
 public class Message {
     public final static int TYPE_TEXT = 1;
     public final static int TYPE_IMAGE = 2;
@@ -16,6 +18,7 @@ public class Message {
     private String body;
     private String fileAddress;
     private int contactId;
+    private MessageViewHolder messageViewHolder;
 
     boolean belongsToCurrentUser;
 
@@ -30,6 +33,14 @@ public class Message {
     }
 
     public Message() {
+    }
+
+    public void setMessageViewHolder(MessageViewHolder messageViewHolder) {
+        this.messageViewHolder = messageViewHolder;
+    }
+
+    public MessageViewHolder getMessageViewHolder() {
+        return messageViewHolder;
     }
 
     public String getText() {

@@ -40,8 +40,10 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
@@ -50,6 +52,7 @@ import com.sutmobiledev.bluetoothchat.ChooseVideo;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.MessageAdapter;
+import com.sutmobiledev.bluetoothchat.MessageViewHolder;
 import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.RecordAudio;
 import com.sutmobiledev.bluetoothchat.User;
@@ -544,6 +547,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }
+                if(messages.get(i).getType() == CHOOSE_VIDEO){
+                    VideoView videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
+                    MediaController mediaController = new MediaController(MainActivity.this);
+                    videoView.setMediaController(mediaController);
+                    mediaController.setAnchorView(videoView);
                 }
             }
         });
