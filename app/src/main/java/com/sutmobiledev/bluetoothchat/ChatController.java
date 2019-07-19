@@ -1,6 +1,7 @@
 
 package com.sutmobiledev.bluetoothchat;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -10,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -165,10 +167,7 @@ public class ChatController {
     }
 
     public void write(byte[] out, int shouldWrite) {
-        writeThread.writeHandler.obtainMessage(0, shouldWrite, 0, out).sendToTarget();
-
-        if (!writeThread.isAlive())
-            writeThread.start();
+        writeThread.write(out, shouldWrite);
     }
 
     public void sendNotify() {
@@ -206,48 +205,60 @@ public class ChatController {
         ChatController.this.start();
     }
 
-    private class WriteThread extends Thread {
-        private byte[] bufferToWrite;
-        private boolean ready = false;
-        private int shouldSend = 0;
-        public Handler writeHandler = new Handler(new Handler.Callback() {
-            @Override
-            public boolean handleMessage(Message msg) {
-                Log.d(TAG, "handleMessage: Before");
-                while (ready) ;
-                Log.d(TAG, "handleMessage: After");
-                bufferToWrite = ((byte[]) msg.obj).clone();
-                shouldSend = msg.arg1;
-                ready = true;
+    public void save_file(String name, byte[] bytes, boolean firstTime) {
+        File apkStorage = null;
+        File outputFile = null;
+        if (new CheckForSDCard().isSDCardPresent()) {
 
-                return true;
+            apkStorage = new File(
+                    Environment.getExternalStorageDirectory().getAbsolutePath() + "/BluetoothChat"
+            );
+        } else {
+            Toast.makeText(mainActivity, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
+            mainActivity.finish();
+        }
+
+        //If File is not present create directory
+        if (!apkStorage.exists()) {
+            apkStorage.mkdir();
+            Log.d(TAG, "save_file: Directory Created.");
+        }
+
+        outputFile = new File(apkStorage, name);//Create Output file in Main File
+
+        //Create New File if not present
+        if (!outputFile.exists()) {
+            try {
+                outputFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        });
-
-        @Override
-        public void run() {
-            while (true) {
-                if (ready) {
-                    ReadWriteThread r;
-                    synchronized (MainActivity.lock) {
-                        if (state != STATE_CONNECTED)
-                            return;
-                        r = connectedThread;
-
-
-                        r.write(bufferToWrite, shouldSend);
-                        Log.d(TAG, "write: " + new String(bufferToWrite));
-                        Log.d(TAG, "write: " + MainActivity.lock.toString());
-
-                        try {
-                            ready = false;
-                            MainActivity.lock.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+            Log.d(TAG, "save_file: File Created");
+        } else if (firstTime) {
+            try {
+                outputFile.delete();
+                outputFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            Log.d(TAG, "save_file: File Created");
+        }
+
+        FileOutputStream fos = null;//Get OutputStream for NewFile Location
+        try {
+            fos = new FileOutputStream(outputFile, true);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
+        try {
+            assert fos != null;
+
+            fos.write(bytes, 0, bytes.length);
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -359,6 +370,53 @@ public class ChatController {
         }
     }
 
+    private class WriteThread extends Thread {
+        private volatile Handler writeHandler = null;
+
+        public WriteThread() {
+            start();
+        }
+
+        public void write(byte[] buffer, int shouldWrite) {
+            handler.obtainMessage(0, shouldWrite, 0, buffer).sendToTarget();
+        }
+
+        @SuppressLint("HandlerLeak")
+        @Override
+        public void run() {
+            Looper.prepare();
+
+            writeHandler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    ReadWriteThread r;
+                    Log.d(TAG, "WriteThread.write: before sync block");
+                    synchronized (MainActivity.lock) {
+                        if (state != STATE_CONNECTED)
+                            return;
+                        r = connectedThread;
+
+
+                        byte[] bufferToWrite = (byte[]) msg.obj;
+                        r.write(bufferToWrite, msg.arg1);
+                        Log.d(TAG, "WriteThread.write: " + new String(bufferToWrite));
+
+                        try {
+                            Log.d(TAG, "WriteThread.write: before wait");
+                            MainActivity.lock.wait();
+                            Log.d(TAG, "WriteThread.write: before after wait");
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Log.d(TAG, "WriteThread.write: after sync block");
+                }
+            };
+
+            Looper.loop();
+        }
+    }
+
     // runs during a connection with a remote device
     private class ReadWriteThread extends Thread {
         private final BluetoothSocket bluetoothSocket;
@@ -414,20 +472,20 @@ public class ChatController {
                     // Send the obtained bytes to the UI Activity
                     handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1, buffer_read).sendToTarget();
                 } else if (code.startsWith(SEND_NOTIFY)) {
-                        handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0,
-                                null).sendToTarget();
+                    handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0, null).sendToTarget();
+                    Log.d(TAG, "run: Notify Received");
                 } else if (code.startsWith(SEND_FILE)) {
-                    sendNotify();
-
                     int byteCnt = 0;
                     byte[] temp, buffer_Length = new byte[1024];
                     try {
+                        sendNotify();
                         byteCnt = inputStream.read(buffer_Length);
 
                         sendNotify();
 
                         temp = new byte[byteCnt];
                         System.arraycopy(buffer_Length, 0, temp, 0, byteCnt);
+                        Log.d(TAG, "run: LEN: " + new String(temp));
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
@@ -444,6 +502,7 @@ public class ChatController {
 
                         temp = new byte[byteCnt];
                         System.arraycopy(buffer_Type, 0, temp, 0, byteCnt);
+                        Log.d(TAG, "run: TYPE: " + new String(temp));
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
@@ -460,6 +519,7 @@ public class ChatController {
 
                         temp = new byte[byteCnt];
                         System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
+                        Log.d(TAG, "run: NAME: " + new String(temp));
                     } catch (IOException e) {
                         connectionLost();
                         // Start the service over to restart listening mode
@@ -504,13 +564,15 @@ public class ChatController {
                     obj[1] = type;
 
                     handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
+                } else {
+                    assert false;
                 }
             }
         }
 
         // write to OutputStream
         public synchronized void write(byte[] buffer, int shouldWrite) {
-            Log.d(TAG, "write: " + new String(buffer));
+            Log.d(TAG, "ReadWriteThread.write: " + new String(buffer));
             try {
                 outputStream.write(buffer);
                 if (shouldWrite == 1)
@@ -522,64 +584,6 @@ public class ChatController {
         public void cancel() {
             try {
                 bluetoothSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void save_file(String name, byte[] bytes, boolean firstTime) {
-            File apkStorage = null;
-            File outputFile = null;
-            if (new CheckForSDCard().isSDCardPresent()) {
-
-                apkStorage = new File(
-                        Environment.getExternalStorageDirectory() + "/BluetoothChat"
-                );
-            } else {
-                Toast.makeText(mainActivity, "Oops!! There is no SD Card.", Toast.LENGTH_SHORT).show();
-                mainActivity.finish();
-            }
-
-            //If File is not present create directory
-            if (!apkStorage.exists()) {
-                apkStorage.mkdir();
-                Log.d(TAG, "save_file: Directory Created.");
-            }
-
-            outputFile = new File(apkStorage, name);//Create Output file in Main File
-
-            //Create New File if not present
-            if (!outputFile.exists()) {
-                try {
-                    outputFile.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "save_file: File Created");
-            } else if (firstTime) {
-                try {
-                    outputFile.delete();
-                    outputFile.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Log.d(TAG, "save_file: File Created");
-            }
-
-            FileOutputStream fos = null;//Get OutputStream for NewFile Location
-            try {
-                fos = new FileOutputStream(outputFile,true);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-
-
-
-            try {
-                assert fos != null;
-
-                fos.write(bytes, 0, bytes.length);
-                fos.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

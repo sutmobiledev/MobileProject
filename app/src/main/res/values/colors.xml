@@ -6,4 +6,5 @@
     <color name="black">#000000</color>
     <color name="colorPrimaryDark">#2984ba</color>
     <color name="colorAccent">#FF7676</color>
+    <color name="red">#D81B1B</color>
 </resources>

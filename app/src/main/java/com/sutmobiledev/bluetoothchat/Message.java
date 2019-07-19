@@ -19,13 +19,13 @@ public class Message {
 
     boolean belongsToCurrentUser;
 
-    public Message(int type, String name, String body, String imageAdd, String photoAdress, int contactId, boolean belongsToCurrentUser){
+    public Message(int type, String name, String body, String imageAdd, String fileAddress, int contactId, boolean belongsToCurrentUser){
         this.body = body;
         this.imageAdd = imageAdd;
         this.name = name;
         this.type = type;
         this.contactId = contactId;
-        this.fileAddress = photoAdress;
+        this.fileAddress = fileAddress;
         this.belongsToCurrentUser = belongsToCurrentUser;
     }
 

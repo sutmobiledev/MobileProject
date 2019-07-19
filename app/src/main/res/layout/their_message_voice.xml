@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingVertical="10dp"
+    android:paddingLeft="0dp"
+    android:paddingRight="30dp"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">\
+            <android.support.v7.widget.CardView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:elevation="12dp"
+                android:id="@+id/view2"
+                app:cardCornerRadius="20dp"
+                android:layout_centerHorizontal="true"
+                android:innerRadius="0dp"
+                android:shape="ring"
+                android:thicknessRatio="1.9">
+                <ImageView
+                    android:layout_height="40dp"
+                    android:layout_width="match_parent"
+                    android:id="@+id/imageView1"
+                    android:src="@drawable/unknown"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true">
+                </ImageView>
+            </android.support.v7.widget.CardView>
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_marginLeft="15dp"
+                android:layout_toRightOf="@+id/view2"
+                android:layout_alignTop="@+id/view2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
+                android:text="Rose"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/their_message"
+            android:id="@+id/ll"
+            android:orientation="horizontal"
+            android:gravity="left">
+            <ImageView
+                android:layout_height="50dp"
+                android:layout_width="50dp"
+                android:id="@+id/imageView2"
+                android:src="@drawable/voice"
+                android:layout_marginLeft="30dp"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/message_body"
+                android:textColor="@color/black"
+                android:padding="10dp"
+                android:elevation="2dp"
+                android:textSize="18dp"
+                android:layout_alignParentRight="true"
+                android:text="Placeholder message"
+                />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
