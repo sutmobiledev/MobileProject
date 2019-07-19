@@ -27,19 +27,7 @@ public class EnterActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int PERMISSION_ALL = 1;
-        String[] PERMISSIONS = {
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.RECORD_AUDIO,
-                Manifest.permission.CAMERA,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.BLUETOOTH
-        };
 
-        if(!hasPermissions(this, PERMISSIONS)){
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
-        }
         db = DataBaseHelper.getInstance(this);
 //        db.addMessage(new Message(1, "akbar", "salam", null, null, 2, true));
 //        db.addMessage(new Message(1, "akbar", "salam dg che ghad salam mikoni hamash", null, null, 2, false));
