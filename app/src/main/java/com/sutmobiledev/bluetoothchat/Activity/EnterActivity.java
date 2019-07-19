@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
+import com.sutmobiledev.bluetoothchat.Message;
 import com.sutmobiledev.bluetoothchat.R;
 
 import java.util.Timer;
@@ -40,7 +41,8 @@ public class EnterActivity extends Activity {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
         db = DataBaseHelper.getInstance(this);
-//        db.addMessage(new Message(1, "asghar", "ajksdflkal;sjdkfl;", null, null, 1, true));
+//        db.addMessage(new Message(1, "akbar", "salam", null, null, 2, true));
+//        db.addMessage(new Message(1, "akbar", "salam dg che ghad salam mikoni hamash", null, null, 2, false));
         setContentView(R.layout.activity_enter);
         rl = findViewById(R.id.rootRL);
         rl.setOnClickListener(new View.OnClickListener() {
