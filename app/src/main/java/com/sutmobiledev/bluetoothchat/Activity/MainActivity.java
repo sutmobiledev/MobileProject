@@ -1,5 +1,7 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -255,7 +257,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         btnConnect = findViewById(R.id.btn_connect);
         listView = findViewById(R.id.list);
         inputLayout = findViewById(R.id.input_layout);
-        View btnSend = findViewById(R.id.btn_send);
+        final View btnSend = findViewById(R.id.btn_send);
         Button btnFile = findViewById(R.id.btn_file);
 
         btnFile.setOnClickListener(new View.OnClickListener() {
@@ -268,6 +270,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 transaction.addToBackStack(null);
                 transaction.commit();
                 //fileManager.showFileChooser();
+            }
+        });
+        inputLayout.getEditText().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ValueAnimator colorAnimation = ObjectAnimator.ofInt(btnSend, "backgroundColor", 0xc8c8c8, 0x4FA8DC);
             }
         });
 

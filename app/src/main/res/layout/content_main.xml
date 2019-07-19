@@ -84,7 +84,7 @@
 
                 android:layout_height="40dp"
                 android:layout_gravity="center"
-                android:background="@mipmap/ic_send_blue_round"
+                android:background="@mipmap/ic_send_gray_round"
                 android:layout_weight="0.1"
                 />
         </LinearLayout>
