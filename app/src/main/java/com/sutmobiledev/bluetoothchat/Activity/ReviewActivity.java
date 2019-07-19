@@ -56,8 +56,6 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
         super.onCreate(savedInstanceState);
         dataBaseHelper = DataBaseHelper.getInstance(this);
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-
         chooseImage = new ChooseImage();
         setContentView(R.layout.activity_review);
         listView = findViewById(R.id.l);

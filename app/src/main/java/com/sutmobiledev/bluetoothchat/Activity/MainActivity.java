@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 //                    save to db message sent by this user
                     message = new com.sutmobiledev.bluetoothchat.Message();
                     message.setName(bluetoothAdapter.getName());
-                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
+                    message.setContactId(connectingDevice.getAddress().hashCode());
                     message.setBelongsToCurrentUser(true);
                     message.setBody(writeMessage);
                     message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
