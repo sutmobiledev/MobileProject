@@ -74,7 +74,13 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
                 holder.messageBody.setText(message.getText());
             }
-            else if (message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO || message.getType() == Message.TYPE_VOICE){
+            else if (message.getType() == Message.TYPE_VOICE){
+                convertView = messageInflater.inflate(R.layout.my_message_voice, null);
+                holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
+                convertView.setTag(holder);
+                holder.messageBody.setText(message.getTypeName());
+            }
+            else if (message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO ){
                 convertView = messageInflater.inflate(R.layout.my_message_file, null);
                 holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
                 convertView.setTag(holder);
@@ -132,7 +138,27 @@ public class MessageAdapter extends BaseAdapter{
                 holder.name.setText(message.getName());
                 holder.messageBody.setText(message.getText());
             }
-            else if(message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO || message.getType() == Message.TYPE_VOICE){
+            else if(message.getType() == Message.TYPE_VOICE){
+                convertView = messageInflater.inflate(R.layout.their_message_voice, null);
+                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                if(message.getImageAdd() != null){
+                    File folder = new File(message.getImageAdd());
+                    if (folder.exists()) {
+                        String folderpath1 = folder.getAbsolutePath().toString().trim();
+                        imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
+                    } else {
+                        Log.e("Hereee", "image not exists");
+                    }
+                }
+                holder.avatar = imageView;
+                holder.name = (TextView) convertView.findViewById(R.id.name);
+                holder.messageBody = (TextView) convertView.findViewById(R.id.message_body);
+                convertView.setTag(holder);
+
+                holder.name.setText(message.getName());
+                holder.messageBody.setText(message.getTypeName());
+            }
+            else if(message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO ){
                 convertView = messageInflater.inflate(R.layout.their_message_file, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){

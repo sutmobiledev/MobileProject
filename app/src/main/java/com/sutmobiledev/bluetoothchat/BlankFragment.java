@@ -3,6 +3,7 @@ package com.sutmobiledev.bluetoothchat;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +56,12 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
                 main.chooseImage.choosePhotoFromGallary(main);
                 break;
             case R.id.btn_voice:
+                main.recordAudio = new RecordAudio();
+                main.recordAudio.setMain(main);
+                FragmentTransaction transaction = main.getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, this);
+                transaction.addToBackStack(null);
+                transaction.commit();
                 break;
             case R.id.btn_file:
                 main.fileManager.showFileChooser();
