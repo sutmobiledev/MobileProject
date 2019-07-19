@@ -49,11 +49,11 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
         Fragment fragment = null;
         switch (view.getId()) {
             case R.id.btn_image:
-                main.chooseImage.choosePhotoFromGallary(main);
+                main.chooseImage.showPictureDialog(main);
                 break;
 
             case R.id.btn_video:
-                main.chooseImage.choosePhotoFromGallary(main);
+                main.chooseVideo.chooseVideoFromGallary(main);
                 break;
             case R.id.btn_voice:
                 main.recordAudio = new RecordAudio();

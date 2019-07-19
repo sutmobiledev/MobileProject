@@ -410,37 +410,54 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
+        switch (requestCode%10) {
             case CHOOSE_IMAGE:
                 if (resultCode == Activity.RESULT_OK) {
-                    if (data != null) {
-                        Uri contentURI = data.getData();
-                        try {
-                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-                            String path = chooseImage.saveImage(bitmap);
-                            Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                            fileManager.sendFile(path, CHOOSE_IMAGE);
+                    if(requestCode/10 == 2) {
+                        if (data != null) {
+                            Uri contentURI = data.getData();
+                            try {
+                                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+                                String path = chooseImage.saveImage(bitmap);
+                                Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+                                fileManager.sendFile(path, CHOOSE_IMAGE);
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                            }
+                            // Get the Uri of the selected file
+                            //TODO
                         }
-                        // Get the Uri of the selected file
-                        //TODO
+                    }
+                    if(requestCode/10 == 1) {
+                        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+                        String path = chooseImage.saveImage(thumbnail);
+                        Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+                        fileManager.sendFile(path, CHOOSE_IMAGE);
                     }
                 }
                 break;
             case CHOOSE_VIDEO:
                 if (resultCode == Activity.RESULT_OK) {
-                    if (data != null) {
-                        Uri contentURI = data.getData();
-                        String selectedVideoPath = chooseVideo.getPath(contentURI);
-                        Log.d("path",selectedVideoPath);
-                        String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
-                        fileManager.sendFile(path, CHOOSE_VIDEO);
+                    if(requestCode/10 == 2) {
+                        if (data != null) {
+                            Uri contentURI = data.getData();
+                            String selectedVideoPath = chooseVideo.getPath(contentURI);
+                            Log.d("path", selectedVideoPath);
+                            String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
+                            fileManager.sendFile(path, CHOOSE_VIDEO);
 
-                        // Get the Uri of the selected file
-                        //TODO
+                            // Get the Uri of the selected file
+                            //TODO
+                        }
+                    }
+                    if(requestCode/10 == 1) {
+                        Uri contentURI = data.getData();
+                        String recordedVideoPath = chooseVideo.getPath(contentURI);
+                        Log.d("frrr",recordedVideoPath);
+                        String path = chooseVideo.saveVideoToInternalStorage(recordedVideoPath);
+                        fileManager.sendFile(path, CHOOSE_VIDEO);
                     }
                 }
                 break;
