@@ -9,12 +9,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
@@ -36,6 +38,8 @@ import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.ChooseImage;
+import com.sutmobiledev.bluetoothchat.ChooseVideo;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.MessageAdapter;
@@ -44,6 +48,7 @@ import com.sutmobiledev.bluetoothchat.User;
 import com.sutmobiledev.bluetoothchat.file.FileManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
@@ -76,12 +81,17 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public static final String DEVICE_OBJECT = "device_name";
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-    public static final int CHOOSE_FILE = 2;
+    public static final int CHOOSE_IMAGE = 2;
+    public static final int CHOOSE_VIDEO = 3;
+    public static final int CHOOSE_VOICE = 4;
+    public static final int CHOOSE_FILE = 5;
 
     public static final Object lock = new Object();
     private com.sutmobiledev.bluetoothchat.Message message;
 
     public FileManager fileManager;
+    public ChooseImage chooseImage;
+    public ChooseVideo chooseVideo;
     public ChatController chatController;
 
     private BluetoothDevice connectingDevice;
@@ -352,6 +362,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         fileManager = FileManager.getInstance().init(this, handler);
         db = DataBaseHelper.getInstance(this);
         messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
+        chooseImage = new ChooseImage();
+        chooseVideo= new ChooseVideo();
     }
 
     @Override
@@ -375,6 +387,39 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
+            case CHOOSE_IMAGE:
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data != null) {
+                        Uri contentURI = data.getData();
+                        try {
+                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+                            String path = chooseImage.saveImage(bitmap);
+                            Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+                            fileManager.sendFile(path, CHOOSE_IMAGE);
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                        }
+                        // Get the Uri of the selected file
+                        //TODO
+                    }
+                }
+                break;
+            case CHOOSE_VIDEO:
+                if (resultCode == Activity.RESULT_OK) {
+                    if (data != null) {
+                        Uri contentURI = data.getData();
+                        String selectedVideoPath = chooseVideo.getPath(contentURI);
+                        Log.d("path",selectedVideoPath);
+                        String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
+                        fileManager.sendFile(path, CHOOSE_VIDEO);
+
+                        // Get the Uri of the selected file
+                        //TODO
+                    }
+                }
+                break;
             case CHOOSE_FILE:
                 if (resultCode == Activity.RESULT_OK) {
                     // Get the Uri of the selected file
@@ -384,7 +429,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     String path = uri.getPath();
                     Log.d(TAG, "File Path: " + path);
                     //TODO
-                    fileManager.sendFile(path, 0);
+                    fileManager.sendFile(path, CHOOSE_FILE);
                 }
                 break;
 
