@@ -1,10 +1,12 @@
 package com.sutmobiledev.bluetoothchat;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
@@ -17,13 +19,41 @@ import java.util.Calendar;
 
 public class ChooseVideo {
     AppCompatActivity intent;
+    public void showPictureDialog(final AppCompatActivity intent){
+        AlertDialog.Builder pictureDialog = new AlertDialog.Builder(intent);
+        pictureDialog.setTitle("Select Action");
+        String[] pictureDialogItems = {
+                "Select video from gallery",
+                "Record video from camera" };
+        pictureDialog.setItems(pictureDialogItems,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                chooseVideoFromGallary(intent);
+                                break;
+                            case 1:
+                                takeVideoFromCamera(intent);
+                                break;
+                        }
+                    }
+                });
+        pictureDialog.show();
+    }
+
     public void chooseVideoFromGallary(AppCompatActivity intent) {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
         this.intent = intent;
 
-        intent.startActivityForResult(galleryIntent, 3);
+        intent.startActivityForResult(galleryIntent, 3+20);
     }
+    private void takeVideoFromCamera(AppCompatActivity intent2) {
+        Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        intent2.startActivityForResult(intent, 3+10);
+    }
+
     public String saveVideoToInternalStorage(String filePath) {
 
         File newfile;
