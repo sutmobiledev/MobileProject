@@ -1,5 +1,6 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
@@ -13,7 +14,6 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -25,6 +25,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,6 +35,7 @@ import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.Message;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.R;
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public static final int CHOOSE_FILE = 2;
 
     public static final Object lock = new Object();
-    private com.sutmobiledev.bluetoothchat.Message message;
+    private Message message;
 
     public FileManager fileManager;
     public ChatController chatController;
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private Handler handler = new Handler(new Handler.Callback() {
 
         @Override
-        public boolean handleMessage(Message msg) {
+        public boolean handleMessage(android.os.Message msg) {
             switch (msg.what) {
                 case MESSAGE_FILE_SEND:
                     break;
@@ -116,14 +118,16 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     byte[] writeBuf = (byte[]) msg.obj;
 
                     String writeMessage = new String(writeBuf);
+
                     chatMessages.add("Me: " + writeMessage);
 //                    save to db message sent by this user
-                    message = new com.sutmobiledev.bluetoothchat.Message();
+                    message = new Message();
                     message.setName(bluetoothAdapter.getName());
                     message.setContactId(bluetoothAdapter.getAddress().hashCode());
                     message.setBelongsToCurrentUser(true);
                     message.setBody(writeMessage);
-                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+                    message.setType(Message.TYPE_TEXT);
+
                     db.addMessage(message);
                     chatAdapter.notifyDataSetChanged();
                     break;
@@ -131,13 +135,16 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     byte[] readBuf = (byte[]) msg.obj;
 
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    message = new com.sutmobiledev.bluetoothchat.Message();
+
+                    message = new Message();
                     message.setName(connectingDevice.getName());
                     message.setContactId(connectingDevice.getAddress().hashCode());
                     message.setBelongsToCurrentUser(false);
                     message.setBody(readMessage);
-                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+                    message.setType(Message.TYPE_TEXT);
+
                     db.addMessage(message);
+
                     chatAdapter.notifyDataSetChanged();
                     chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
                     chatAdapter.notifyDataSetChanged();
@@ -148,7 +155,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     assert connectingDevice != null;
 
                     int contactId = connectingDevice.getAddress().hashCode();
-                    if (db.firsConection(contactId)) {
+                    if (db.firsConnection(contactId)) {
                         db.addContact(new Contact(contactId,connectingDevice.getName(),"jkaldsjfk"));
                     }
 
@@ -276,6 +283,10 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             @Override
             public void onClick(View v) {
                 ValueAnimator colorAnimation = ObjectAnimator.ofInt(btnSend, "backgroundColor", 0xc8c8c8, 0x4FA8DC);
+                colorAnimation.setDuration(300);
+                colorAnimation.setEvaluator(new ArgbEvaluator());
+                colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
+                colorAnimation.start();
             }
         });
 

@@ -43,7 +43,8 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dataBaseHelper = DataBaseHelper.getInstance(this);
-
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
         setContentView(R.layout.activity_review);
         listView = findViewById(R.id.l);
         ArrayList<Contact> contacts = dataBaseHelper.getContacts();

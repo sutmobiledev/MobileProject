@@ -2,10 +2,8 @@ package com.sutmobiledev.bluetoothchat;
 
 import android.Manifest;
 import android.os.Bundle;
-import android.os.strictmode.SqliteObjectLeakedViolation;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.ListView;
 
 import java.util.ArrayList;

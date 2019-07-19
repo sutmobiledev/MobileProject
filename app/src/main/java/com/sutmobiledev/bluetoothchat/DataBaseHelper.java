@@ -139,7 +139,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public Boolean firsConection(int contactId) {
+    public Boolean firsConnection(int contactId) {
         this.db = this.getReadableDatabase();
         ArrayList<Contact> contacts = new ArrayList<>();
         Cursor cursor = db.rawQuery("SELECT * FROM CONTACTS WHERE ID='" +contactId+"'" , null);
