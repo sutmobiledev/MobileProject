@@ -118,7 +118,7 @@ public class ChatController {
     }
 
     // manage Bluetooth connection
-    public synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
+    public synchronized void connected(BluetoothSocket socket, BluetoothDevice device, boolean isServer) {
         // Cancel the thread
         if (connectThread != null) {
             connectThread.cancel();
@@ -136,8 +136,36 @@ public class ChatController {
             acceptThread = null;
         }
 
-        // Start the thread to manage the connection and perform transmissions
+        //Handshaking
+        setState(STATE_HANDSHAKING);
         connectedThread = new ReadWriteThread(socket);
+        if (isServer) {
+            connectedThread.write(User.getUser_name().getBytes(), 0);
+
+            byte[] peer_user_name = new byte[FileManager.BUFFER_SIZE];
+            int bytecnt = 0;
+            try {
+                bytecnt = connectedThread.inputStream.read(peer_user_name);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            handler.obtainMessage(MainActivity.MESSAGE_PEER_USER_NAME, bytecnt, 0, peer_user_name);
+        } else {
+            byte[] peer_user_name = new byte[FileManager.BUFFER_SIZE];
+            int bytecnt = 0;
+            try {
+                bytecnt = connectedThread.inputStream.read(peer_user_name);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            handler.obtainMessage(MainActivity.MESSAGE_PEER_USER_NAME, bytecnt, 0, peer_user_name);
+
+            connectedThread.write(User.getUser_name().getBytes(), 0);
+        }
+
+        // Start the thread to manage the connection and perform transmissions
         connectedThread.start();
 
         // Send the name of the connected device back to the UI Activity

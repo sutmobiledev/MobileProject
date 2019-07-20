@@ -40,14 +40,11 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
-import com.sutmobiledev.bluetoothchat.ChatsRe;
 import com.sutmobiledev.bluetoothchat.ChooseImage;
 import com.sutmobiledev.bluetoothchat.ChooseVideo;
 import com.sutmobiledev.bluetoothchat.Contact;
@@ -88,6 +85,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public static final int MESSAGE_NOTIFY = 6;
     public static final int MESSAGE_FILE_SEND = 7;
     public static final int MESSAGE_FILE_RECEIVE = 8;
+    public static final int MESSAGE_PEER_USER_NAME = 9;
 
 
     public static final String DEVICE_OBJECT = "device_name";
@@ -118,6 +116,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         public boolean handleMessage(Message msg) {
             Log.d(TAG, "handleMessage: Called:  " + String.valueOf(msg.what));
             switch (msg.what) {
+                case MESSAGE_PEER_USER_NAME:
+
+                    break;
                 case MESSAGE_FILE_SEND:
                     String args = (String)msg.obj;
 
