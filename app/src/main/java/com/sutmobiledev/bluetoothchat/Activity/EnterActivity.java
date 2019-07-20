@@ -28,16 +28,29 @@ public class EnterActivity extends Activity {
     Timer timer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        int PERMISSION_ALL = 1;
+        String[] PERMISSIONS = {
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.BLUETOOTH
+        };
+
+        if(!hasPermissions(this, PERMISSIONS)){
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+        }
         super.onCreate(savedInstanceState);
 
         db = DataBaseHelper.getInstance(this);
-        db.addContact(new Contact(2,"akbar","/storage/emulated/0/Download/sana.jpg"));
-        db.addContact(new Contact(3,"ambar","/storage/emulated/0/Download/sana.jpg"));
-        db.addMessage(new Message(2, "akbar", "salam", "/storage/emulated/0/Download/sana.jpg", "/storage/emulated/0/Download/sana.jpg", 2, false));
-//        db.addMessage(new Message(3, "akbar", "salam dg che ghad salam mikoni hamash", null, Environment.getExternalStorageDirectory()+"/DCIM/Camera/VID_20190720_004111.mp4", 2, false));
-        db.addMessage(new Message(4, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
-        db.addMessage(new Message(5, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
-        db.addMessage(new Message(1, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
+//        db.addContact(new Contact(2,"akbar","/storage/emulated/0/Download/sana.jpg"));
+//        db.addContact(new Contact(3,"ambar","/storage/emulated/0/Download/sana.jpg"));
+//        db.addMessage(new Message(2, "akbar", "salam", "/storage/emulated/0/Download/sana.jpg", "/storage/emulated/0/Download/sana.jpg", 2, false));
+//        db.addMessage(new Message(3, "akbar", "salam dg che ghad salam mikoni hamash", null, Environment.getExternalStorageDirectory()+"/Movies/xperia_hd_landscapes.mp4", 2, false));
+//        db.addMessage(new Message(4, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
+//        db.addMessage(new Message(5, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
+//        db.addMessage(new Message(1, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
 
         setContentView(R.layout.activity_enter);
         rl = findViewById(R.id.rootRL);
@@ -53,7 +66,17 @@ public class EnterActivity extends Activity {
             public void run() {
                 startActivity(new Intent(EnterActivity.this, ReviewActivity.class));
             }
-        },2000);
+        },200);
+    }
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 }
