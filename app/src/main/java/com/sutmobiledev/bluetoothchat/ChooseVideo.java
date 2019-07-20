@@ -61,7 +61,7 @@ public class ChooseVideo {
         try {
 
             File currentFile = new File(filePath);
-            File wallpaperDirectory = new File(Environment.getExternalStorageDirectory() + "/BluetoothChat");
+            File wallpaperDirectory = new File(Environment.getExternalStorageDirectory() + "/BluetoothChat/wallpaper");
             newfile = new File(wallpaperDirectory, Calendar.getInstance().getTimeInMillis() + ".mp4");
 
             if (!wallpaperDirectory.exists()) {
