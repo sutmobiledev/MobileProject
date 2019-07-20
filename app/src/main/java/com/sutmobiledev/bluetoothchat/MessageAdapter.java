@@ -121,10 +121,12 @@ public class MessageAdapter extends BaseAdapter{
                 ImageView imageView2 = convertView.findViewById(R.id.imageView2);
                 if(message.getFileAddress() != null){
                 File folder2 = new File(message.getFileAddress());
+                Log.i("imageee",message.getFileAddress());
                 if(folder2.exists())
                 {
                     String folderpath3 = folder2.getAbsolutePath().toString().trim();
-                    imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
+                    imageView2.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
+                    Log.i("imageee", "exists");
                 }
                 else
                 {
@@ -151,9 +153,10 @@ public class MessageAdapter extends BaseAdapter{
                 VideoView videoView = convertView.findViewById(R.id.video_view);
                 if(message.getFileAddress()!= null) {
                     String videoPath = message.getFileAddress();
+                    Log.i("pathhhh",videoPath);
 //            File   folderpath = new File(folder+File.separator+imagename);
-                    Uri uri = Uri.parse(videoPath);
-                    videoView.setVideoURI(uri);
+//                    Uri uri = Uri.parse(videoPath);
+                    videoView.setVideoURI(Uri.parse(videoPath));
                 }
                 holder.sendedVideo = videoView;
                 convertView.setTag(holder);

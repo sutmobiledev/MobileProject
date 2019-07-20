@@ -4,6 +4,7 @@ import android.Manifest;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -25,6 +26,10 @@ public class ChatsRe extends AppCompatActivity {
         if (messages != null) {
             for (Message message : messages) {
                 message.setImageAdd(db.getContact(postId).getPicAdd());
+                message.setName(db.getContact(postId).getName());
+//                Log.i("hereee", db.getContact(postId).getPicAdd());
+                Log.i("hereee", db.getContact(postId).getName());
+                Log.i("hereee", String.valueOf(db.getContact(postId).getId()));
                 messageAdapter.add(message);
             }
         }

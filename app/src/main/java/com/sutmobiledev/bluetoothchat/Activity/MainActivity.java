@@ -56,6 +56,7 @@ import com.sutmobiledev.bluetoothchat.MessageViewHolder;
 import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.RecordAudio;
 import com.sutmobiledev.bluetoothchat.User;
+import com.sutmobiledev.bluetoothchat.VideoFragment;
 import com.sutmobiledev.bluetoothchat.file.FileManager;
 
 import java.io.File;
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     BlankFragment blankFragment;
     public RecordAudio recordAudio;
     public FrameLayout fr;
+    VideoFragment videoFragment;
 
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
@@ -553,6 +555,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     MediaController mediaController = new MediaController(MainActivity.this);
                     videoView.setMediaController(mediaController);
                     mediaController.setAnchorView(videoView);
+//                    videoFragment = new VideoFragment();
+//                    videoFragment.setMain(MainActivity.this);
+//                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//                    transaction.replace(R.id.frame, videoFragment);
+//                    transaction.addToBackStack(null);
+//                    transaction.commit();
+//                    fr.setVisibility(View.VISIBLE);
+
                 }
             }
         });
