@@ -2,6 +2,7 @@ package com.sutmobiledev.bluetoothchat;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,7 @@ import com.sutmobiledev.bluetoothchat.Activity.MainActivity;
  * A simple {@link Fragment} subclass.
  */
 public class VideoFragment extends Fragment implements View.OnClickListener {
-    MainActivity main;
+    AppCompatActivity main;
     VideoView videoView;
     public VideoFragment() {
     }
@@ -38,7 +39,7 @@ public class VideoFragment extends Fragment implements View.OnClickListener {
         return rootView;
     }
 
-    public void setMain(MainActivity main) {
+    public void setMain(AppCompatActivity main) {
         this.main = main;
     }
 

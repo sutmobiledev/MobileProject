@@ -5,10 +5,12 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.MediaController;
 import android.widget.Toast;
@@ -25,9 +27,12 @@ public class ChatsRe extends AppCompatActivity {
     ArrayList<Message> messages;
     int postId;
     DataBaseHelper db;
+    VideoFragment videoFragment;
+    FrameLayout fr;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chatsre);
+        fr = findViewById(R.id.frame);
         postId = getSharedPreferences("postId", MODE_PRIVATE).getInt("postId", 0);
         db = DataBaseHelper.getInstance(this);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
@@ -66,13 +71,13 @@ public class ChatsRe extends AppCompatActivity {
                     MediaController mediaController = new MediaController(ChatsRe.this);
                     videoView.setMediaController(mediaController);
                     mediaController.setAnchorView(videoView);
-//                    videoFragment = new VideoFragment();
-//                    videoFragment.setMain(MainActivity.this);
-//                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                    transaction.replace(R.id.frame, videoFragment);
-//                    transaction.addToBackStack(null);
-//                    transaction.commit();
-//                    fr.setVisibility(View.VISIBLE);
+                    videoFragment = new VideoFragment();
+                    videoFragment.setMain(ChatsRe.this);
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, videoFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    fr.setVisibility(View.VISIBLE);
 
                 }
             }
