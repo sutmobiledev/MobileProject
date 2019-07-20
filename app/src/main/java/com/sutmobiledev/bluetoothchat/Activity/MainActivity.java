@@ -9,7 +9,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -43,7 +42,6 @@ import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.User;
 import com.sutmobiledev.bluetoothchat.file.FileManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
@@ -82,7 +80,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     private com.sutmobiledev.bluetoothchat.Message message;
 
     public FileManager fileManager;
-    public ChatController chatController;
+    public ChatController chatController = null;
 
     private BluetoothDevice connectingDevice;
     private ArrayAdapter<String> discoveredDevicesAdapter;
@@ -126,6 +124,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     }
                     break;
                 case MESSAGE_STATE_CHANGE:
+                    Log.e(TAG, "handleMessage: " + String.valueOf(msg.arg1));
                     switch (msg.arg1) {
                         case ChatController.STATE_CONNECTED:
                             setStatus("Connected to: " + connectingDevice.getName());
@@ -138,6 +137,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                         case ChatController.STATE_LISTEN:
                         case ChatController.STATE_NONE:
                             setStatus("Not connected");
+                            btnConnect.setEnabled(true);
                             break;
                     }
                     break;
@@ -217,8 +217,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         discoveredDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
         //locate listviews and attatch the adapters
-        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
-        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
+        ListView listView = (ListView) dialog.findViewById(R.id.pairedDeviceList);
+        ListView listView2 = (ListView) dialog.findViewById(R.id.discoveredDeviceList);
         listView.setAdapter(pairedDevicesAdapter);
         listView2.setAdapter(discoveredDevicesAdapter);
 
@@ -291,12 +291,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     }
 
     private void findViewsByIds() {
-        status = findViewById(R.id.status);
-        btnConnect = findViewById(R.id.btn_connect);
-        listView = findViewById(R.id.list);
-        inputLayout = findViewById(R.id.input_layout);
+        status = (TextView) findViewById(R.id.status);
+        btnConnect = (Button) findViewById(R.id.btn_connect);
+        listView = (ListView) findViewById(R.id.list);
+        inputLayout = (TextInputLayout) findViewById(R.id.input_layout);
         View btnSend = findViewById(R.id.btn_send);
-        Button btnFile = findViewById(R.id.btn_file);
+        Button btnFile = (Button) findViewById(R.id.btn_file);
 
         btnFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -341,21 +341,25 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onStart() {
+        Log.e(TAG, "onStart: ");
         super.onStart();
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
-        } else {
-            chatController = new ChatController(this, handler);
-        }
+        if (chatController == null) {
+            if (!bluetoothAdapter.isEnabled()) {
+                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
+            } else {
+                chatController = new ChatController(this, handler);
+            }
 
-        fileManager = FileManager.getInstance().init(this, handler);
-        db = DataBaseHelper.getInstance(this);
-        messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
+            fileManager = FileManager.getInstance().init(this, handler);
+            db = DataBaseHelper.getInstance(this);
+            messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
+        }
     }
 
     @Override
     public void onResume() {
+        Log.e(TAG, "onResume: ");
         super.onResume();
 
         if (chatController != null) {
@@ -367,6 +371,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onDestroy() {
+        Log.e(TAG, "onDestroy: ");
         super.onDestroy();
         if (chatController != null)
             chatController.stop();
@@ -377,14 +382,18 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         switch (requestCode) {
             case CHOOSE_FILE:
                 if (resultCode == Activity.RESULT_OK) {
-                    // Get the Uri of the selected file
                     Uri uri = data.getData();
-                    Log.d(TAG, "File Uri: " + uri.toString());
+                    if (uri == null) {
+                        Log.e(TAG, "onActivityResult: Not Supported");
+                        Toast.makeText(this, "This file is not supported.", Toast.LENGTH_LONG).show();
+                        break;
+                    }
+
+                    Log.d(TAG, "onActivityResult Uri: " + uri.toString());
                     // Get the path
-                    String path = uri.getPath();
-                    Log.d(TAG, "File Path: " + path);
-                    //TODO
-                    fileManager.sendFile(path, 0);
+                    Log.d(TAG, "onActivityResult Path: " + uri.getPath());
+
+                    fileManager.sendFile(uri, 0);
                 }
                 break;
 
@@ -433,19 +442,21 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         }
 
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_ID")) {
-            User.USER_ID = getSharedPreferences("post",MODE_PRIVATE).getInt("USER_ID", 0);
-            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
-            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+            User.setUserId(getSharedPreferences("post", MODE_PRIVATE).getInt("USER_ID", 0));
+            User.setProfileAddress(getSharedPreferences("post", MODE_PRIVATE).getString("PROFILE_PIC", null));
+            User.setUser_name(getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
         } else {
-            User.USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
-            getSharedPreferences("post",MODE_PRIVATE).edit().putInt("USER_ID", User.USER_ID).apply();
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
-            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.user_name).apply();
+            User.setUserId((bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode());
+            getSharedPreferences("post", MODE_PRIVATE).edit().putInt("USER_ID", User.getUserId()).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
+            User.setUser_name(bluetoothAdapter.getName());
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
         }
-        bluetoothAdapter.setName(User.user_name);
+
+        bluetoothAdapter.setName(User.getUser_name());
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         messageAdapter = new MessageAdapter(this);
-        listView = findViewById(R.id.list);
+        listView = (ListView) findViewById(R.id.list);
         listView.setSelection(listView.getCount() - 1);
         listView.setAdapter(messageAdapter);
         //show bluetooth devices dialog when click connect button
@@ -461,43 +472,46 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 //        chatAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, chatMessages);
 //        listView.setAdapter(chatAdapter);
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        View header = navigationView.getHeaderView(0);
-        profilePhoto = header.findViewById(R.id.imageView1);
-        nameTextView = header.findViewById(R.id.user);
-        if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
-            Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
-            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
-        } else {
-            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME",User.user_name).apply();
-        }
-        if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
-            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
-        } else {
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
-        }
-        nameTextView.setText(User.user_name);
-        if(User.getProfileAddress()!= null) {
-            File folder2 = new File(User.getProfileAddress());
-            if (folder2.exists()) {
-                String folderpath3 = folder2.getAbsolutePath().trim();
-                profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
-            } else {
-                Log.e("Hereee", "image not exists");
-            }
-        }
+//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+//        navigationView.setNavigationItemSelectedListener(this);
+//        View header = navigationView.getHeaderView(0);
+//        profilePhoto = (ImageView) header.findViewById(R.id.imageView1);
+//        nameTextView = (TextView) header.findViewById(R.id.user);
+//
+//        if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
+//            Log.i(TAG, getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
+//            User.setUser_name(getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
+//        } else {
+//            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
+//        }
+//
+//        if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
+//            User.setProfileAddress(getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null));
+//        } else {
+//            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
+//        }
+//
+//        nameTextView.setText(User.getUser_name());
+//        if(User.getProfileAddress()!= null) {
+//            File folder2 = new File(User.getProfileAddress());
+//            if (folder2.exists()) {
+//                String folderpath3 = folder2.getAbsolutePath().trim();
+//                profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
+//            } else {
+//                Log.e("Hereee", "image not exists");
+//            }
+//        }
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -517,7 +531,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         }
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

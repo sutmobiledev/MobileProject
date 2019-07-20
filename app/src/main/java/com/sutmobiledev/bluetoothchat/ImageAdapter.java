@@ -24,8 +24,8 @@ public class ImageAdapter extends ArrayAdapter<Card> {
             LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = layoutInflater.inflate(R.layout.activity_card, null);
 
-            final TextView nameTextView = view.findViewById(R.id.text1);
-            final TextView authorTextView = view.findViewById(R.id.textview_book_author);
+            final TextView nameTextView = (TextView) view.findViewById(R.id.text1);
+            final TextView authorTextView = (TextView) view.findViewById(R.id.textview_book_author);
             final ViewHolder viewHolder = new ViewHolder(nameTextView, authorTextView);
             view.setTag(viewHolder);
         }

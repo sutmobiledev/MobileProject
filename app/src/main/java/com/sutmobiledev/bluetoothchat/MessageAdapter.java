@@ -53,12 +53,12 @@ public class MessageAdapter extends BaseAdapter{
         if (message.isBelongsToCurrentUser()) {
             if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.my_message_image, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 File folder = new File(message.getFileAddress());
 //            File   folderpath = new File(folder+File.separator+imagename);
                 if(folder.exists())
                 {
-                    String folderpath1 = folder.getAbsolutePath().toString().trim();
+                    String folderpath1 = folder.getAbsolutePath().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
                 }
                 else
@@ -83,11 +83,11 @@ public class MessageAdapter extends BaseAdapter{
         } else {
             if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.their_message_image, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
-                    String folderpath1 = folder.getAbsolutePath().toString().trim();
+                    String folderpath1 = folder.getAbsolutePath().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
                 } else {
                     Log.e("Hereee", "image not exists");
@@ -98,12 +98,12 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
 
                 holder.name.setText(message.getName());
-                ImageView imageView2 = convertView.findViewById(R.id.imageView2);
+                ImageView imageView2 = (ImageView) convertView.findViewById(R.id.imageView2);
                 if(message.getFileAddress() != null){
                 File folder2 = new File(message.getFileAddress());
                 if(folder2.exists())
                 {
-                    String folderpath3 = folder2.getAbsolutePath().toString().trim();
+                    String folderpath3 = folder2.getAbsolutePath().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
                 }
                 else
@@ -114,11 +114,11 @@ public class MessageAdapter extends BaseAdapter{
             }
             else if(message.getType() == Message.TYPE_TEXT){
                 convertView = messageInflater.inflate(R.layout.their_message, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
-                    String folderpath1 = folder.getAbsolutePath().toString().trim();
+                    String folderpath1 = folder.getAbsolutePath().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
                 } else {
                     Log.e("Hereee", "image not exists");
@@ -134,11 +134,11 @@ public class MessageAdapter extends BaseAdapter{
             }
             else if(message.getType() == Message.TYPE_FILE || message.getType() == Message.TYPE_VIDEO || message.getType() == Message.TYPE_VOICE){
                 convertView = messageInflater.inflate(R.layout.their_message_file, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
-                    String folderpath1 = folder.getAbsolutePath().toString().trim();
+                    String folderpath1 = folder.getAbsolutePath().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
                 } else {
                     Log.e("Hereee", "image not exists");

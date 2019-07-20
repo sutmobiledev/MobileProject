@@ -2,14 +2,9 @@ package com.sutmobiledev.bluetoothchat;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.sutmobiledev.bluetoothchat.Activity.ReviewActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -28,7 +23,7 @@ public class ChooseImage {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
         File wallpaperDirectory = new File(
-                Environment.getExternalStorageDirectory() + "/BluetoothChat");
+                Environment.getExternalStorageDirectory() + "/BluetoothChat/wallpaper");
         if (!wallpaperDirectory.exists()) {
             wallpaperDirectory.mkdirs();
         }

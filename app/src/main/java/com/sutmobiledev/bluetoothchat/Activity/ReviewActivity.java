@@ -1,21 +1,16 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,13 +30,10 @@ import com.sutmobiledev.bluetoothchat.ImageAdapter;
 import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.User;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class ReviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private List<Card> cards = new ArrayList<>();
@@ -58,7 +50,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
 
         chooseImage = new ChooseImage();
         setContentView(R.layout.activity_review);
-        listView = findViewById(R.id.l);
+        listView = (ListView) findViewById(R.id.l);
         ArrayList<Contact> contacts = dataBaseHelper.getContacts();
         if (contacts != null) {
             for (int i = 0; i < contacts.size(); i++) {
@@ -66,10 +58,10 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
 
             }
         }
-        stubList = findViewById(R.id.stub);
+        stubList = (ViewStub) findViewById(R.id.stub);
         stubList.inflate();
         stubList.setVisibility(View.VISIBLE);
-        listView = findViewById(R.id.l);
+        listView = (ListView) findViewById(R.id.l);
         listView.setAdapter(new ImageAdapter(this, R.layout.list_view, cards));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -92,22 +84,23 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
         View header = navigationView.getHeaderView(0);
         profilePhoto = (ImageView) header.findViewById(R.id.imageView1);
         nameTextView = (TextView) header.findViewById(R.id.user);
+
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
             Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
-            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+            User.setUser_name(getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
         } else {
-            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME",User.user_name).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
         }
         if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
-            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
+            User.setProfileAddress(getSharedPreferences("post", MODE_PRIVATE).getString("PROFILE_PIC", null));
         } else {
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
         }
-        nameTextView.setText(User.user_name);
+        nameTextView.setText(User.getUser_name());
         if(User.getProfileAddress()!= null) {
             File folder2 = new File(User.getProfileAddress());
             if (folder2.exists()) {
-                String folderpath3 = folder2.getAbsolutePath().toString().trim();
+                String folderpath3 = folder2.getAbsolutePath().trim();
                 profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
             } else {
                 Log.e("Hereee", "image not exists");
@@ -155,7 +148,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == this.RESULT_CANCELED) {
+        if (resultCode == RESULT_CANCELED) {
             return;
         }
         if (requestCode == 1) {
@@ -166,8 +159,8 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
                     String path = chooseImage.saveImage(bitmap);
                     Toast.makeText(ReviewActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
                     profilePhoto.setImageBitmap(bitmap);
-                    User.profileAddress = path;
-                    getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
+                    User.setProfileAddress(path);
+                    getSharedPreferences("post", MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -175,6 +168,6 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
                 }
             }
 
-        };
+        }
     }
 }
