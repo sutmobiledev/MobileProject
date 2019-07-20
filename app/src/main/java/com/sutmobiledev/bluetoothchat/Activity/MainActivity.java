@@ -115,12 +115,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             switch (msg.what) {
                 case MESSAGE_PEER_USER_NAME:
                     PEER_USER_NAME = new String((byte[]) msg.obj, 0, msg.arg1);
+                    Log.i(TAG, "handleMessage: " + PEER_USER_NAME);
                     break;
                 case MESSAGE_FILE_SEND:
                     String args = (String)msg.obj;
 
                     message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(bluetoothAdapter.getName());
+                    message.setName(User.getUser_name());
                     message.setContactId(bluetoothAdapter.getAddress().hashCode());
                     message.setBelongsToCurrentUser(true);
                     message.setBody(args);
@@ -133,12 +134,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 case MESSAGE_FILE_RECEIVE:
                     String args1 = (String)msg.obj;
                     message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(bluetoothAdapter.getName());
+                    message.setName(PEER_USER_NAME);
                     message.setContactId(bluetoothAdapter.getAddress().hashCode());
                     message.setBelongsToCurrentUser(false);
                     message.setBody(args1);
                     message.setType(msg.arg1);
-                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/wallpaper/"+args1);
+                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args1);
                     db.addMessage(message);
                     messages.add(message);
                     messageAdapter.add(message);
@@ -176,7 +177,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 //                    chatMessages.add("Me: " + writeMessage);
 //                    save to db message sent by this user
                     message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(bluetoothAdapter.getName());
+                    message.setName(User.getUser_name());
                     message.setContactId(bluetoothAdapter.getAddress().hashCode());
                     message.setBelongsToCurrentUser(true);
                     message.setBody(writeMessage);
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     //add imageadress
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(connectingDevice.getName());
+                    message.setName(PEER_USER_NAME);
                     message.setContactId(connectingDevice.getAddress().hashCode());
                     message.setBelongsToCurrentUser(false);
                     message.setBody(readMessage);
@@ -214,10 +215,10 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                         db.addContact(new Contact(contactId, PEER_USER_NAME, "jkaldsjfk"));
                     } else {
                         db.deleteContact(contactId);
-                        db.addContact(new Contact(contactId, connectingDevice.getName(), null));
+                        db.addContact(new Contact(contactId, PEER_USER_NAME, null));
                     }
 
-                    Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(),
+                    Toast.makeText(getApplicationContext(), "Connected to " + PEER_USER_NAME,
                             Toast.LENGTH_SHORT).show();
                     break;
                 case MESSAGE_TOAST:

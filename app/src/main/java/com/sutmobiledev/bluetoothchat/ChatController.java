@@ -150,7 +150,7 @@ public class ChatController {
                 e.printStackTrace();
             }
 
-            handler.obtainMessage(MainActivity.MESSAGE_PEER_USER_NAME, bytecnt, 0, peer_user_name);
+            handler.obtainMessage(MainActivity.MESSAGE_PEER_USER_NAME, bytecnt, 0, peer_user_name).sendToTarget();
         } else {
             byte[] peer_user_name = new byte[FileManager.BUFFER_SIZE];
             int bytecnt = 0;
@@ -160,7 +160,7 @@ public class ChatController {
                 e.printStackTrace();
             }
 
-            handler.obtainMessage(MainActivity.MESSAGE_PEER_USER_NAME, bytecnt, 0, peer_user_name);
+            handler.obtainMessage(MainActivity.MESSAGE_PEER_USER_NAME, bytecnt, 0, peer_user_name).sendToTarget();
 
             connectedThread.write(User.getUser_name().getBytes(), 0);
         }
