@@ -52,7 +52,6 @@ import com.sutmobiledev.bluetoothchat.ChooseVideo;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.MessageAdapter;
-import com.sutmobiledev.bluetoothchat.MessageViewHolder;
 import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.RecordAudio;
 import com.sutmobiledev.bluetoothchat.User;
@@ -245,8 +244,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         discoveredDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 
         //locate listviews and attatch the adapters
-        ListView listView = (ListView) dialog.findViewById(R.id.pairedDeviceList);
-        ListView listView2 = (ListView) dialog.findViewById(R.id.discoveredDeviceList);
+        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
+        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
         listView.setAdapter(pairedDevicesAdapter);
         listView2.setAdapter(discoveredDevicesAdapter);
 
@@ -319,13 +318,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     }
 
     private void findViewsByIds() {
-        status = (TextView) findViewById(R.id.status);
-        btnConnect = (Button) findViewById(R.id.btn_connect);
-        listView = (ListView) findViewById(R.id.list);
-        inputLayout = (TextInputLayout) findViewById(R.id.input_layout);
-        fr = (FrameLayout) findViewById(R.id.frame);
-        final Button btnSend = (Button) findViewById(R.id.btn_send);
-        Button btnFile = (Button) findViewById(R.id.btn_file);
+        status = findViewById(R.id.status);
+        btnConnect = findViewById(R.id.btn_connect);
+        listView = findViewById(R.id.list);
+        inputLayout = findViewById(R.id.input_layout);
+        fr = findViewById(R.id.frame);
+        final Button btnSend = findViewById(R.id.btn_send);
+        Button btnFile = findViewById(R.id.btn_file);
 
         btnFile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -432,7 +431,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                             Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
                             String path = chooseImage.saveImage(bitmap);
                             Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                            fileManager.sendFile(path, CHOOSE_IMAGE);
+                            fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -450,7 +449,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                         String selectedVideoPath = chooseVideo.getPath(contentURI);
                         Log.d("path",selectedVideoPath);
                         String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
-                        fileManager.sendFile(path, CHOOSE_VIDEO);
+                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
 
                         // Get the Uri of the selected file
                         //TODO
@@ -534,7 +533,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         bluetoothAdapter.setName(User.getUser_name());
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         messageAdapter = new MessageAdapter(this);
-        listView = (ListView) findViewById(R.id.list);
+        listView = findViewById(R.id.list);
         listView.setSelection(listView.getCount() - 1);
         listView.setAdapter(messageAdapter);
 //        show bluetooth devices dialog when click connect button
@@ -565,7 +564,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     }
                 }
                 if(messages.get(i).getType() == CHOOSE_VIDEO){
-                    VideoView videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
+                    VideoView videoView = messages.get(i).getMessageViewHolder().getSendedVideo();
                     MediaController mediaController = new MediaController(MainActivity.this);
                     videoView.setMediaController(mediaController);
                     mediaController.setAnchorView(videoView);
@@ -581,7 +580,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -594,16 +593,16 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         nameTextView = header.findViewById(R.id.user);
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
             Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
-            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+            User.setUser_name(getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
         } else {
-            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME",User.user_name).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
         }
         if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
-            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
+            User.setProfileAddress(getSharedPreferences("post", MODE_PRIVATE).getString("PROFILE_PIC", null));
         } else {
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
         }
-        nameTextView.setText(User.user_name);
+        nameTextView.setText(User.getUser_name());
         if(User.getProfileAddress()!= null) {
             File folder2 = new File(User.getProfileAddress());
             if (folder2.exists()) {
@@ -617,7 +616,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -637,7 +636,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout2);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout2);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
