@@ -208,7 +208,7 @@ public class ChatController {
         ChatController.this.start();
     }
 
-    public void save_file(String name, String string, boolean firstTime) {
+    public void save_file(String name, byte[] bytes, int len, boolean firstTime) {
         File apkStorage = null;
         File outputFile = null;
         if (new CheckForSDCard().isSDCardPresent()) {
@@ -249,7 +249,7 @@ public class ChatController {
 
         FileOutputStream fos = null;//Get OutputStream for NewFile Location
         try {
-            fos = new FileOutputStream(outputFile);
+            fos = new FileOutputStream(outputFile, true);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -258,7 +258,8 @@ public class ChatController {
         try {
             assert fos != null;
 
-            fos.write(string.getBytes());
+            fos.write(bytes, 0, len);
+            fos.flush();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -537,8 +538,8 @@ public class ChatController {
                         }
                         String name = new String(buffer_Name, 0, byteCnt);
 
+                        boolean first = true;
                         try {
-                            StringBuilder stringBuilder = new StringBuilder();
                             int tot = 0;
                             byte[] buffer_file = new byte[FileManager.BUFFER_SIZE];
 
@@ -551,7 +552,8 @@ public class ChatController {
 
                                 sendNotify();
 
-                                stringBuilder.append(new String(buffer_file, 0, byteCnt));
+                                save_file(name, buffer_file, byteCnt, first);
+                                first = false;
 
                                 //length += length % 512;
                                 length -= byteCnt;
@@ -567,7 +569,7 @@ public class ChatController {
 
                                     sendNotify();
 
-                                    stringBuilder.append(new String(buffer_file, 0, byteCnt));
+                                    save_file(name, buffer_file, byteCnt, first);
 
                                     length -= byteCnt;
                                 }
@@ -583,11 +585,9 @@ public class ChatController {
 
                             sendNotify();
 
-                            stringBuilder.append(new String(buffer_file, 0, length));
-                            save_file(name, stringBuilder.toString(), true);
+                            save_file(name, buffer_file, length, first);
 
                             Log.i(TAG, "run: tot = " + String.valueOf(tot));
-                            Log.e(TAG, "run: str = " + stringBuilder.toString());
                         } catch (Exception e) {
                             Log.e(TAG, "run6: " + e.getMessage());
                             connectionLost();
@@ -600,7 +600,7 @@ public class ChatController {
                         obj[0] = name;
                         obj[1] = type;
 
-                        //handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
+                        handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
                         break;
                     default:
                         assert false;

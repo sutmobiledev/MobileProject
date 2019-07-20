@@ -204,7 +204,7 @@ public class FileManager {
             }
 
             if (size > 0) {
-                //handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, type,0,file_name).sendToTarget();
+                handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, type, 0, name).sendToTarget();
 
                 // Message type
                 byte[] send = ChatController.SEND_FILE.getBytes();
