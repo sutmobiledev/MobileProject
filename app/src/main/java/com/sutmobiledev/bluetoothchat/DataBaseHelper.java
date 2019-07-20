@@ -49,6 +49,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         this.db.close();
     }
 
+    public void deleteContact(int contactId) {
+        db = this.getWritableDatabase();
+        db.delete("CONTACTS", "ID = " + contactId, null);
+        db.close();
+
+    }
+
 
     public void addMessage(Message message) {
         this.db = getWritableDatabase();
