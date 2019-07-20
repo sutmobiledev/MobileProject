@@ -73,15 +73,15 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
             }
             else if(message.getType() == Message.TYPE_VIDEO){
-                convertView = messageInflater.inflate(R.layout.my_message_image, null);
-                VideoView videoView = convertView.findViewById(R.id.video_view);
-                if(message.getFileAddress()!= null) {
-                    String videoPath = message.getFileAddress();
-//            File   folderpath = new File(folder+File.separator+imagename);
-                    Uri uri = Uri.parse(videoPath);
-                    videoView.setVideoURI(uri);
-                }
-                holder.sendedVideo = videoView;
+                convertView = messageInflater.inflate(R.layout.my_message_video2, null);
+//                VideoView videoView = convertView.findViewById(R.id.video_view);
+//                if(message.getFileAddress()!= null) {
+//                    String videoPath = message.getFileAddress();
+////            File   folderpath = new File(folder+File.separator+imagename);
+//                    Uri uri = Uri.parse(videoPath);
+//                    videoView.setVideoURI(uri);
+//                }
+//                holder.sendedVideo = videoView;
                 convertView.setTag(holder);
             }
             else if (message.getType() == Message.TYPE_TEXT){
@@ -136,8 +136,10 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
             }
             else if(message.getType() == Message.TYPE_VIDEO){
-                convertView = messageInflater.inflate(R.layout.their_message_image, null);
-                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
+
+                convertView = messageInflater.inflate(R.layout.their_message_video2, null);
+                ImageView imageView = convertView.findViewById(R.id.imageView1);
+
                 if(message.getImageAdd() != null){
                     File folder = new File(message.getImageAdd());
                     if (folder.exists()) {
@@ -150,15 +152,15 @@ public class MessageAdapter extends BaseAdapter{
                 holder.avatar = imageView;
                 holder.name = (TextView) convertView.findViewById(R.id.name);
                 holder.name.setText(message.getName());
-                VideoView videoView = convertView.findViewById(R.id.video_view);
-                if(message.getFileAddress()!= null) {
-                    String videoPath = message.getFileAddress();
-                    Log.i("pathhhh",videoPath);
-//            File   folderpath = new File(folder+File.separator+imagename);
-//                    Uri uri = Uri.parse(videoPath);
-                    videoView.setVideoURI(Uri.parse(videoPath));
-                }
-                holder.sendedVideo = videoView;
+//                VideoView videoView = convertView.findViewById(R.id.video_view);
+//                if(message.getFileAddress()!= null) {
+//                    String videoPath = message.getFileAddress();
+//                    Log.i("pathhhh",videoPath);
+////            File   folderpath = new File(folder+File.separator+imagename);
+////                    Uri uri = Uri.parse(videoPath);
+//                    videoView.setVideoURI(Uri.parse(videoPath));
+//                }
+//                holder.sendedVideo = videoView;
                 convertView.setTag(holder);
             }
             else if(message.getType() == Message.TYPE_TEXT){
