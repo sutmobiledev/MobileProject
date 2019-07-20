@@ -73,7 +73,7 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
             }
             else if(message.getType() == Message.TYPE_VIDEO){
-                convertView = messageInflater.inflate(R.layout.my_message_image, null);
+                convertView = messageInflater.inflate(R.layout.my_message_video, null);
                 VideoView videoView = convertView.findViewById(R.id.video_view);
                 if(message.getFileAddress()!= null) {
                     String videoPath = message.getFileAddress();
@@ -136,7 +136,7 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
             }
             else if(message.getType() == Message.TYPE_VIDEO){
-                convertView = messageInflater.inflate(R.layout.their_message_image, null);
+                convertView = messageInflater.inflate(R.layout.their_message_video, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                     File folder = new File(message.getImageAdd());
