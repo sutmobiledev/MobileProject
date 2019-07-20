@@ -20,9 +20,6 @@
             android:layout_height="wrap_content"
             android:inflatedId="@+id/show_layout"
             android:layout="@layout/list_view" />
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/frame"></FrameLayout>
+
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

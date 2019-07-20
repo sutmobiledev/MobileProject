@@ -34,7 +34,7 @@ public class EnterActivity extends Activity {
         db.addContact(new Contact(2,"akbar","/storage/emulated/0/Download/sana.jpg"));
 //        db.addContact(new Contact(3,"ambar","/storage/emulated/0/Download/sana.jpg"));
 //        db.addMessage(new Message(2, "akbar", "salam", "/storage/emulated/0/Download/sana.jpg", "/storage/emulated/0/Download/sana.jpg", 2, false));
-        db.addMessage(new Message(3, "akbar", "salam dg che ghad salam mikoni hamash", null, Environment.getExternalStorageDirectory()+"/Movies/xperia_hd_landscapes.mp4", 2, false));
+        db.addMessage(new Message(3, "akbar", "salam dg che ghad salam mikoni hamash", null, Environment.getExternalStorageDirectory()+"/ADM/Video/9/Supernatural_S09E01_HDTV_Blaxup.com.mp4", 2, false));
 //        db.addMessage(new Message(4, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
 //        db.addMessage(new Message(5, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
 //        db.addMessage(new Message(1, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));

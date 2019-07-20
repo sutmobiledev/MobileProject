@@ -47,6 +47,7 @@ import android.widget.VideoView;
 
 import com.sutmobiledev.bluetoothchat.BlankFragment;
 import com.sutmobiledev.bluetoothchat.ChatController;
+import com.sutmobiledev.bluetoothchat.ChatsRe;
 import com.sutmobiledev.bluetoothchat.ChooseImage;
 import com.sutmobiledev.bluetoothchat.ChooseVideo;
 import com.sutmobiledev.bluetoothchat.Contact;
@@ -552,17 +553,25 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     }
                 }
                 if(messages.get(i).getType() == CHOOSE_VIDEO){
-                    VideoView videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
-                    MediaController mediaController = new MediaController(MainActivity.this);
-                    videoView.setMediaController(mediaController);
-                    mediaController.setAnchorView(videoView);
-//                    videoFragment = new VideoFragment();
-//                    videoFragment.setMain(MainActivity.this);
-//                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                    transaction.replace(R.id.frame, videoFragment);
-//                    transaction.addToBackStack(null);
-//                    transaction.commit();
-//                    fr.setVisibility(View.VISIBLE);
+//                    VideoView videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
+//                    MediaController mediaController = new MediaController(MainActivity.this);
+//                    videoView.setMediaController(mediaController);
+//                    mediaController.setAnchorView(videoView);
+////                    videoFragment = new VideoFragment();
+////                    videoFragment.setMain(MainActivity.this);
+////                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+////                    transaction.replace(R.id.frame, videoFragment);
+////                    transaction.addToBackStack(null);
+////                    transaction.commit();
+////                    fr.setVisibility(View.VISIBLE);
+                    videoFragment = new VideoFragment();
+                    videoFragment.setVideoPath(messages.get(i).getFileAddress());
+                    videoFragment.setMain(MainActivity.this);
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, videoFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    fr.setVisibility(View.VISIBLE);
 
                 }
             }

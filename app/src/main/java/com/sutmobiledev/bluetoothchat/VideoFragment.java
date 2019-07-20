@@ -1,4 +1,5 @@
 package com.sutmobiledev.bluetoothchat;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -19,16 +20,22 @@ import com.sutmobiledev.bluetoothchat.Activity.MainActivity;
 public class VideoFragment extends Fragment implements View.OnClickListener {
     AppCompatActivity main;
     VideoView videoView;
+    String videoPath;
     public VideoFragment() {
+    }
+
+    public void setVideoPath(String videoPath) {
+        this.videoPath = videoPath;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_blank, container, false);
+        View rootView = inflater.inflate(R.layout.videoplay_fram, container, false);
 
         videoView = rootView.findViewById(R.id.video_view);
+        videoView.setVideoURI(Uri.parse(videoPath));
 
         MediaController mediaController = new MediaController(main);
         videoView.setMediaController(mediaController);

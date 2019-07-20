@@ -2,6 +2,7 @@ package com.sutmobiledev.bluetoothchat;
 
 import android.Manifest;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -67,11 +68,22 @@ public class ChatsRe extends AppCompatActivity {
                     }
                 }
                 if(messages.get(i).getType() == 3){
-                    VideoView videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
-                    MediaController mediaController = new MediaController(ChatsRe.this);
-                    videoView.setMediaController(mediaController);
-                    mediaController.setAnchorView(videoView);
+//                    Log.i("pathhhh",videoPath);
+//                    VideoView videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
+//                    if(messages.get(i).getFileAddress()!= null) {
+//                    String videoPath = messages.get(i).getFileAddress();
+//                    Log.i("pathhhh",videoPath);
+////            File   folderpath = new File(folder+File.separator+imagename);
+//
+////                    Uri uri = Uri.parse(videoPath);
+//                    videoView.setVideoURI(Uri.parse(videoPath));
+//                }
+//                    videoView = (VideoView) messages.get(i).getMessageViewHolder().getSendedVideo();
+//                    MediaController mediaController = new MediaController(ChatsRe.this);
+//                    videoView.setMediaController(mediaController);
+//                    mediaController.setAnchorView(videoView);
                     videoFragment = new VideoFragment();
+                    videoFragment.setVideoPath(messages.get(i).getFileAddress());
                     videoFragment.setMain(ChatsRe.this);
                     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                     transaction.replace(R.id.frame, videoFragment);
