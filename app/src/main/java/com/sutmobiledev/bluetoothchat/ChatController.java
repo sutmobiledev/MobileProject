@@ -549,7 +549,7 @@ public class ChatController {
                             ChatController.this.start();
                             break;
                         }
-                        String type = new String(buffer_Type, 0, byteCnt);
+                        int type = Integer.getInteger(new String(buffer_Type, 0, byteCnt));
 
                         byte[] buffer_Name = new byte[1024];
                         try {
@@ -626,11 +626,7 @@ public class ChatController {
                             break;
                         }
 
-                        String[] obj = new String[2];
-                        obj[0] = name;
-                        obj[1] = type;
-
-                        handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
+                        handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, type, 0, name).sendToTarget();
                         break;
                     default:
                         assert false;
