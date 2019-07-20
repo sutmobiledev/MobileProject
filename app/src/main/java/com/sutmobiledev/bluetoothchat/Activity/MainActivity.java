@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     message.setBelongsToCurrentUser(true);
                     message.setBody(args);
                     message.setType(msg.arg1);
-                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args);
+                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/wallpaper/"+args);
                     db.addMessage(message);
                     messages.add(message);
                     messageAdapter.add(message);
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     message.setBelongsToCurrentUser(false);
                     message.setBody(args1);
                     message.setType(msg.arg1);
-                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args1);
+                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/wallpaper/"+args1);
                     db.addMessage(message);
                     messages.add(message);
                     messageAdapter.add(message);
