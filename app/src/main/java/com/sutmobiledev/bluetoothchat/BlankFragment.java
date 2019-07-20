@@ -4,6 +4,7 @@ package com.sutmobiledev.bluetoothchat;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,10 +27,10 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
 
         View rootView = inflater.inflate(R.layout.fragment_blank, container, false);
 
-        Button image = (Button) rootView.findViewById(R.id.btn_image);
-        Button video = (Button) rootView.findViewById(R.id.btn_video);
-        Button voice = (Button) rootView.findViewById(R.id.btn_voice);
-        Button file = (Button) rootView.findViewById(R.id.btn_file);
+        Button image = rootView.findViewById(R.id.btn_image);
+        Button video = rootView.findViewById(R.id.btn_video);
+        Button voice = rootView.findViewById(R.id.btn_voice);
+        Button file = rootView.findViewById(R.id.btn_file);
 
         image.setOnClickListener(this);
         video.setOnClickListener(this);
@@ -49,16 +50,19 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
         Fragment fragment = null;
         switch (view.getId()) {
             case R.id.btn_image:
+                Log.i("SUTBluetooth", "onClick: img");
                 main.chooseImage.showPictureDialog(main);
                 break;
             case R.id.btn_video:
+                Log.i("SUTBluetooth", "onClick: vid");
                 main.chooseVideo.chooseVideoFromGallary(main);
                 break;
             case R.id.btn_voice:
+                Log.i("SUTBluetooth", "onClick: voice");
                 main.recordAudio = new RecordAudio();
                 main.recordAudio.setMain(main);
                 FragmentTransaction transaction = main.getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame, this);
+                transaction.replace(R.id.frame, main.recordAudio);
                 transaction.addToBackStack(null);
                 transaction.commit();
                 break;

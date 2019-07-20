@@ -1,9 +1,6 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.Manifest;
-import android.animation.ArgbEvaluator;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
@@ -32,7 +29,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -89,6 +85,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
 
     public static final String DEVICE_OBJECT = "device_name";
+    public String PEER_USER_NAME = "";
 
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
     public static final int CHOOSE_IMAGE = 2;
@@ -117,7 +114,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             Log.d(TAG, "handleMessage: Called:  " + String.valueOf(msg.what));
             switch (msg.what) {
                 case MESSAGE_PEER_USER_NAME:
-
+                    PEER_USER_NAME = new String((byte[]) msg.obj, 0, msg.arg1);
                     break;
                 case MESSAGE_FILE_SEND:
                     String args = (String)msg.obj;
@@ -214,7 +211,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
                     int contactId = connectingDevice.getAddress().hashCode();
                     if (db.firsConnection(contactId)) {
-                        db.addContact(new Contact(contactId,connectingDevice.getName(),"jkaldsjfk"));
+                        db.addContact(new Contact(contactId, PEER_USER_NAME, "jkaldsjfk"));
                     }
 
                     Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(),
@@ -280,7 +277,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 String info = ((TextView) view).getText().toString();
                 String address = info.substring(info.length() - 17);
 
-                connectToDevice(address);
+                connectToDevice(address, true);
                 dialog.dismiss();
             }
 
@@ -293,7 +290,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 String info = ((TextView) view).getText().toString();
                 String address = info.substring(info.length() - 17);
 
-                connectToDevice(address);
+                connectToDevice(address, true);
                 dialog.dismiss();
             }
         });
@@ -313,10 +310,10 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         status.setText(s);
     }
 
-    private void connectToDevice(String deviceAddress) {
+    private void connectToDevice(String deviceAddress, boolean isServer) {
         bluetoothAdapter.cancelDiscovery();
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
-        chatController.connect(device);
+        chatController.connect(device, isServer);
     }
 
     private void findViewsByIds() {
@@ -341,16 +338,16 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 //fileManager.showFileChooser();
             }
         });
-        inputLayout.getEditText().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ValueAnimator colorAnimation = ObjectAnimator.ofInt(btnSend, "backgroundColor", 0xc8c8c8, 0x4FA8DC);
-                colorAnimation.setDuration(300);
-                colorAnimation.setEvaluator(new ArgbEvaluator());
-                colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
-                colorAnimation.start();
-            }
-        });
+//        inputLayout.getEditText().setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                ValueAnimator colorAnimation = ObjectAnimator.ofInt(btnSend, "backgroundColor", 0xc8c8c8, 0x4FA8DC);
+//                colorAnimation.setDuration(300);
+//                colorAnimation.setEvaluator(new ArgbEvaluator());
+//                colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
+//                colorAnimation.start();
+//            }
+//        });
 
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -424,37 +421,54 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
+        switch (requestCode % 10) {
             case CHOOSE_IMAGE:
                 if (resultCode == Activity.RESULT_OK) {
-                    if (data != null) {
-                        Uri contentURI = data.getData();
-                        try {
-                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-                            String path = chooseImage.saveImage(bitmap);
-                            Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                            fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
+                    if (requestCode / 10 == 2) {
+                        if (data != null) {
+                            Uri contentURI = data.getData();
+                            try {
+                                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+                                String path = chooseImage.saveImage(bitmap);
+                                Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+                                fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                            }
+                            // Get the Uri of the selected file
+                            //TODO
                         }
-                        // Get the Uri of the selected file
-                        //TODO
+                    }
+                    if (requestCode / 10 == 1) {
+                        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+                        String path = chooseImage.saveImage(thumbnail);
+                        Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
                     }
                 }
                 break;
             case CHOOSE_VIDEO:
                 if (resultCode == Activity.RESULT_OK) {
-                    if (data != null) {
-                        Uri contentURI = data.getData();
-                        String selectedVideoPath = chooseVideo.getPath(contentURI);
-                        Log.d("path",selectedVideoPath);
-                        String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
-                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
+                    if (requestCode / 10 == 2) {
+                        if (data != null) {
+                            Uri contentURI = data.getData();
+                            String selectedVideoPath = chooseVideo.getPath(contentURI);
+                            Log.d("path", selectedVideoPath);
+                            String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
+                            fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
 
-                        // Get the Uri of the selected file
-                        //TODO
+                            // Get the Uri of the selected file
+                            //TODO
+                        }
+                    }
+                    if (requestCode / 10 == 1) {
+                        Uri contentURI = data.getData();
+                        String recordedVideoPath = chooseVideo.getPath(contentURI);
+                        Log.d("frrr", recordedVideoPath);
+                        String path = chooseVideo.saveVideoToInternalStorage(recordedVideoPath);
+                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
                     }
                 }
                 break;
@@ -532,7 +546,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
         }
 
-        bluetoothAdapter.setName(User.getUser_name());
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         messageAdapter = new MessageAdapter(this);
         listView = findViewById(R.id.list);

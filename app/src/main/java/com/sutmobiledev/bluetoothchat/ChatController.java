@@ -96,7 +96,7 @@ public class ChatController {
     }
 
     // initiate connection to remote device
-    public synchronized void connect(BluetoothDevice device) {
+    public synchronized void connect(BluetoothDevice device, boolean isServer) {
         // Cancel any thread
         if (state == STATE_CONNECTING) {
             if (connectThread != null) {
@@ -112,7 +112,7 @@ public class ChatController {
         }
 
         // Start the thread to connect with the given device
-        connectThread = new ConnectThread(device);
+        connectThread = new ConnectThread(device, isServer);
         connectThread.start();
         setState(STATE_CONNECTING);
     }
@@ -326,7 +326,7 @@ public class ChatController {
                             case STATE_LISTEN:
                             case STATE_CONNECTING:
                                 // start the connected thread.
-                                connected(socket, socket.getRemoteDevice());
+                                connected(socket, socket.getRemoteDevice(), false);
                                 break;
                             case STATE_NONE:
                             case STATE_CONNECTED:
@@ -355,9 +355,11 @@ public class ChatController {
     private class ConnectThread extends Thread {
         private final BluetoothSocket socket;
         private final BluetoothDevice device;
+        private boolean isServer = false;
 
-        public ConnectThread(BluetoothDevice device) {
+        public ConnectThread(BluetoothDevice device, boolean isServer) {
             this.device = device;
+            this.isServer = isServer;
             BluetoothSocket tmp = null;
             try {
                 tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
@@ -391,7 +393,7 @@ public class ChatController {
             }
 
             // Start the connected thread
-            connected(socket, device);
+            connected(socket, device, isServer);
         }
 
         public void cancel() {

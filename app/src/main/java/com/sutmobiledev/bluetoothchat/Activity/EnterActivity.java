@@ -1,15 +1,10 @@
 package com.sutmobiledev.bluetoothchat.Activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -33,8 +28,8 @@ public class EnterActivity extends Activity {
         db = DataBaseHelper.getInstance(this);
         db.addContact(new Contact(2,"akbar","/storage/emulated/0/Download/sana.jpg"));
 //        db.addContact(new Contact(3,"ambar","/storage/emulated/0/Download/sana.jpg"));
-//        db.addMessage(new Message(2, "akbar", "salam", "/storage/emulated/0/Download/sana.jpg", "/storage/emulated/0/Download/sana.jpg", 2, false));
-        db.addMessage(new Message(3, "akbar", "salam dg che ghad salam mikoni hamash", null, Environment.getExternalStorageDirectory()+"/ADM/Video/9/Supernatural_S09E01_HDTV_Blaxup.com.mp4", 2, false));
+        db.addMessage(new Message(2, "akbar", "salam", "/storage/emulated/0/Download/sana.jpg", "/storage/emulated/0/Download/sana.jpg", 2, true));
+//        db.addMessage(new Message(3, "akbar", "salam dg che ghad salam mikoni hamash", null, Environment.getExternalStorageDirectory()+"/ADM/Video/9/Supernatural_S09E01_HDTV_Blaxup.com.mp4", 2, false));
 //        db.addMessage(new Message(4, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
 //        db.addMessage(new Message(5, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
 //        db.addMessage(new Message(1, "akbar", "salam dg che ghad salam mikoni hamash", null, "/storage/emulated/0/recording2.3pg", 2, false));
