@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:id="@+id/activity_enter"
-android:layout_width="fill_parent"
-android:layout_height="fill_parent"
-android:orientation="vertical"
-android:padding="@dimen/activity_horizontal_margin"
-    android:background="@color/colorAccent"
-    tools:context="com.sutmobiledev.bluetoothchat.Activity.EnterActivity">
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootRL"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_enter"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/back">
-</RelativeLayout>
+    android:orientation="vertical"
+    android:background="@color/colorAccent"
+    tools:context="com.sutmobiledev.bluetoothchat.Activity.EnterActivity">
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/rootRL"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@drawable/blue">
+    </RelativeLayout>
 
 </LinearLayout>

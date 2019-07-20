@@ -15,7 +15,5 @@
             android:title="Change Username" />
         <item android:id="@+id/ChangePhoto"
             android:title="Change Photo" />
-        <item android:id="@+id/Appearence"
-            android:title="Appearence" />
     </group>
 </menu>
