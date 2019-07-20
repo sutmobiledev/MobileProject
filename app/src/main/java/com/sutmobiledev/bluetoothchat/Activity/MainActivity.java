@@ -212,6 +212,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     int contactId = connectingDevice.getAddress().hashCode();
                     if (db.firsConnection(contactId)) {
                         db.addContact(new Contact(contactId, PEER_USER_NAME, "jkaldsjfk"));
+                    } else {
+                        db.deleteContact(contactId);
+                        db.addContact(new Contact(contactId, connectingDevice.getName(), null));
                     }
 
                     Toast.makeText(getApplicationContext(), "Connected to " + connectingDevice.getName(),
