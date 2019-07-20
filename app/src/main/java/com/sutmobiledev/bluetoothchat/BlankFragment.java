@@ -26,10 +26,10 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
 
         View rootView = inflater.inflate(R.layout.fragment_blank, container, false);
 
-        Button image = rootView.findViewById(R.id.btn_image);
-        Button video = rootView.findViewById(R.id.btn_video);
-        Button voice = rootView.findViewById(R.id.btn_voice);
-        Button file = rootView.findViewById(R.id.btn_file);
+        Button image = (Button) rootView.findViewById(R.id.btn_image);
+        Button video = (Button) rootView.findViewById(R.id.btn_video);
+        Button voice = (Button) rootView.findViewById(R.id.btn_voice);
+        Button file = (Button) rootView.findViewById(R.id.btn_file);
 
         image.setOnClickListener(this);
         video.setOnClickListener(this);
@@ -51,7 +51,6 @@ public class BlankFragment extends Fragment implements View.OnClickListener {
             case R.id.btn_image:
                 main.chooseImage.showPictureDialog(main);
                 break;
-
             case R.id.btn_video:
                 main.chooseVideo.chooseVideoFromGallary(main);
                 break;

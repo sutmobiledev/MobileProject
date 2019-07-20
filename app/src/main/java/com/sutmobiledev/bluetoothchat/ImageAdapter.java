@@ -28,9 +28,9 @@ public class ImageAdapter extends ArrayAdapter<Card> {
             LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = layoutInflater.inflate(R.layout.activity_card, null);
 
-            final TextView nameTextView = view.findViewById(R.id.text1);
-            final TextView authorTextView = view.findViewById(R.id.textview_book_author);
-            final ImageView imageView = view.findViewWithTag(R.id.imageView1);
+            final TextView nameTextView =(TextView) view.findViewById(R.id.text1);
+            final TextView authorTextView = (TextView) view.findViewById(R.id.textview_book_author);
+            final ImageView imageView =(ImageView) view.findViewWithTag(R.id.imageView1);
             final ViewHolder viewHolder = new ViewHolder(nameTextView, authorTextView,imageView);
             view.setTag(viewHolder);
         }
@@ -39,7 +39,7 @@ public class ImageAdapter extends ArrayAdapter<Card> {
         viewHolder.nameTextView.setText(card.getName());
         viewHolder.Id.setText(Integer.toString(card.getPostId()));
 
-        ImageView imageView2 = view.findViewById(R.id.imageView1);
+        ImageView imageView2 = (ImageView) view.findViewById(R.id.imageView1);
         if(card.getImageAdd() != null) {
             File folder = new File(card.getImageAdd());
 //            File   folderpath = new File(folder+File.separator+imagename);

@@ -7,17 +7,16 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.Activity.MainActivity;
+import com.sutmobiledev.bluetoothchat.file.FileManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
+
+//import android.support.annotation.RequiresApi;
 
 public class ChatController {
     public static final String SEND_MESSAGE = "1654656513515613135156156132";
@@ -49,7 +50,8 @@ public class ChatController {
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
     public static final int STATE_CONNECTING = 2;
-    public static final int STATE_CONNECTED = 3;
+    public static final int STATE_HANDSHAKING = 3;
+    public static final int STATE_CONNECTED = 4;
 
     public ChatController(Context context, Handler handler) {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -85,6 +87,7 @@ public class ChatController {
             connectedThread = null;
         }
 
+        Log.e(TAG, "start: " + String.valueOf(getState()));
         setState(STATE_LISTEN);
         if (acceptThread == null) {
             acceptThread = new AcceptThread();
@@ -166,7 +169,7 @@ public class ChatController {
         setState(STATE_NONE);
     }
 
-    public void write(byte[] out, int shouldWrite) {
+    public synchronized void write(byte[] out, int shouldWrite) {
         writeThread.write(out, shouldWrite);
     }
 
@@ -205,7 +208,7 @@ public class ChatController {
         ChatController.this.start();
     }
 
-    public void save_file(String name, byte[] bytes, boolean firstTime) {
+    public void save_file(String name, byte[] bytes, int len, boolean firstTime) {
         File apkStorage = null;
         File outputFile = null;
         if (new CheckForSDCard().isSDCardPresent()) {
@@ -255,7 +258,8 @@ public class ChatController {
         try {
             assert fos != null;
 
-            fos.write(bytes, 0, bytes.length);
+            fos.write(bytes, 0, len);
+            fos.flush();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -266,7 +270,7 @@ public class ChatController {
     private class AcceptThread extends Thread {
         private final BluetoothServerSocket serverSocket;
 
-        @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
+        //@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD_MR1)
         public AcceptThread() {
             BluetoothServerSocket tmp = null;
             try {
@@ -378,7 +382,7 @@ public class ChatController {
         }
 
         public void write(byte[] buffer, int shouldWrite) {
-            handler.obtainMessage(0, shouldWrite, 0, buffer).sendToTarget();
+            writeHandler.obtainMessage(0, shouldWrite, 0, buffer).sendToTarget();
         }
 
         @SuppressLint("HandlerLeak")
@@ -399,12 +403,11 @@ public class ChatController {
 
                         byte[] bufferToWrite = (byte[]) msg.obj;
                         r.write(bufferToWrite, msg.arg1);
-                        Log.d(TAG, "WriteThread.write: " + new String(bufferToWrite));
 
                         try {
                             Log.d(TAG, "WriteThread.write: before wait");
                             MainActivity.lock.wait();
-                            Log.d(TAG, "WriteThread.write: before after wait");
+                            Log.d(TAG, "WriteThread.write: after wait");
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -444,140 +447,176 @@ public class ChatController {
                 int bytes;
                 try {
                     bytes = inputStream.read(buffer);
+
+                    Log.i(TAG, "run: bytes = " + String.valueOf(bytes));
                 } catch (IOException e) {
+                    Log.e(TAG, "run1: " + e.getMessage());
                     connectionLost();
                     // Start the service over to restart listening mode
                     ChatController.this.start();
                     break;
                 }
 
-                Log.d(TAG, "run: " + new String(buffer));
-                String code = new String(buffer);
-                if (code.startsWith(SEND_MESSAGE)) {
-                    byte[] buffer_read = new byte[1024];
-                    int nbytes;
-                    try {
-                        sendNotify();
-                        nbytes = inputStream.read(buffer_read);
-                        sendNotify();
-                    } catch (IOException e) {
-                        connectionLost();
-                        // Start the service over to restart listening mode
-                        ChatController.this.start();
+                String code = new String(buffer, 0, bytes);
+                Log.d(TAG, "run: " + code);
+                switch (code) {
+                    case SEND_MESSAGE:
+                        byte[] buffer_read = new byte[1024];
+                        int nbytes;
+                        try {
+                            sendNotify();
+                            nbytes = inputStream.read(buffer_read);
+                            sendNotify();
+                        } catch (IOException e) {
+                            Log.e(TAG, "run2: " + e.getMessage());
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+
+                        Log.d(TAG, "run: " + new String(buffer_read, 0, nbytes));
+
+                        // Send the obtained bytes to the UI Activity
+                        handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1, buffer_read).sendToTarget();
                         break;
-                    }
-
-                    Log.d(TAG, "run: " + new String(buffer_read));
-
-                    // Send the obtained bytes to the UI Activity
-                    handler.obtainMessage(MainActivity.MESSAGE_READ, nbytes, -1, buffer_read).sendToTarget();
-                } else if (code.startsWith(SEND_NOTIFY)) {
-                    handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0, null).sendToTarget();
-                    Log.d(TAG, "run: Notify Received");
-                } else if (code.startsWith(SEND_FILE)) {
-                    int byteCnt = 0;
-                    byte[] temp, buffer_Length = new byte[1024];
-                    try {
-                        sendNotify();
-                        byteCnt = inputStream.read(buffer_Length);
-
-                        sendNotify();
-
-                        temp = new byte[byteCnt];
-                        System.arraycopy(buffer_Length, 0, temp, 0, byteCnt);
-                        Log.d(TAG, "run: LEN: " + new String(temp));
-                    } catch (IOException e) {
-                        connectionLost();
-                        // Start the service over to restart listening mode
-                        ChatController.this.start();
+                    case SEND_NOTIFY:
+                        handler.obtainMessage(MainActivity.MESSAGE_NOTIFY, 0, 0, null).sendToTarget();
+                        Log.d(TAG, "run: Notify Received");
                         break;
-                    }
-                    int length = Integer.parseInt(new String(temp));
-
-                    byte[] buffer_Type = new byte[1024];
-                    try {
-                        byteCnt = inputStream.read(buffer_Type);
-
-                        sendNotify();
-
-                        temp = new byte[byteCnt];
-                        System.arraycopy(buffer_Type, 0, temp, 0, byteCnt);
-                        Log.d(TAG, "run: TYPE: " + new String(temp));
-                    } catch (IOException e) {
-                        connectionLost();
-                        // Start the service over to restart listening mode
-                        ChatController.this.start();
-                        break;
-                    }
-                    String type = new String(temp);
-
-                    byte[] buffer_Name = new byte[1024];
-                    try {
-                        byteCnt = inputStream.read(buffer_Name);
-
-                        sendNotify();
-
-                        temp = new byte[byteCnt];
-                        System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
-                        Log.d(TAG, "run: NAME: " + new String(temp));
-                    } catch (IOException e) {
-                        connectionLost();
-                        // Start the service over to restart listening mode
-                        ChatController.this.start();
-                        break;
-                    }
-                    String name = new String(temp);
-
-                    try {
-                        byte[] buffer_file = new byte[8 * 1024];
-                        byteCnt = inputStream.read(buffer_file);
-
-                        sendNotify();
-
-                        temp = new byte[byteCnt];
-                        System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
-                        save_file(name, temp, true);
-
-                        length -= byteCnt;
-
-                        while (length > 0) {
-                            buffer_file = new byte[8 * 1024];
-                            byteCnt = inputStream.read(buffer_file);
+                    case SEND_FILE:
+                        int byteCnt = 0;
+                        byte[] buffer_Length = new byte[1024];
+                        try {
+                            sendNotify();
+                            byteCnt = inputStream.read(buffer_Length);
+                            Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
 
                             sendNotify();
 
-                            temp = new byte[byteCnt];
-                            System.arraycopy(buffer_Name, 0, temp, 0, byteCnt);
-                            save_file(name, temp, false);
-
-                            length -= byteCnt;
+                            Log.d(TAG, "run: LEN: " + new String(buffer_Length, 0, byteCnt));
+                        } catch (IOException e) {
+                            Log.e(TAG, "run3: " + e.getMessage());
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
                         }
-                    } catch (IOException e) {
-                        connectionLost();
-                        // Start the service over to restart listening mode
-                        ChatController.this.start();
+                        int length = Integer.parseInt(new String(buffer_Length, 0, byteCnt));
+
+                        byte[] buffer_Type = new byte[1024];
+                        try {
+                            byteCnt = inputStream.read(buffer_Type);
+                            Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
+
+                            sendNotify();
+
+                            Log.d(TAG, "run: TYPE: " + new String(buffer_Type, 0, byteCnt));
+                        } catch (IOException e) {
+                            Log.e(TAG, "run4: " + e.getMessage());
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+                        String type = new String(buffer_Type, 0, byteCnt);
+
+                        byte[] buffer_Name = new byte[1024];
+                        try {
+                            byteCnt = inputStream.read(buffer_Name);
+                            Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
+
+                            sendNotify();
+
+                            Log.d(TAG, "run: NAME: " + new String(buffer_Name, 0, byteCnt));
+                        } catch (IOException e) {
+                            Log.e(TAG, "run5: " + e.getMessage());
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+                        String name = new String(buffer_Name, 0, byteCnt);
+
+                        boolean first = true;
+                        try {
+                            int tot = 0;
+                            byte[] buffer_file = new byte[FileManager.BUFFER_SIZE];
+
+                            if (length > FileManager.BUFFER_SIZE) {
+                                byteCnt = inputStream.read(buffer_file);
+                                Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
+                                Log.e(TAG, "run: str1 = " + new String(buffer_file, 0, byteCnt));
+
+                                tot += byteCnt;
+
+                                sendNotify();
+
+                                save_file(name, buffer_file, byteCnt, first);
+                                first = false;
+
+                                //length += length % 512;
+                                length -= byteCnt;
+
+                                while (length > FileManager.BUFFER_SIZE) {
+                                    buffer_file = new byte[FileManager.BUFFER_SIZE];
+
+                                    byteCnt = inputStream.read(buffer_file);
+                                    Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
+                                    Log.e(TAG, "run: str2 = " + new String(buffer_file, 0, byteCnt));
+
+                                    tot += byteCnt;
+
+                                    sendNotify();
+
+                                    save_file(name, buffer_file, byteCnt, first);
+
+                                    length -= byteCnt;
+                                }
+                            }
+
+                            buffer_file = new byte[FileManager.BUFFER_SIZE];
+
+                            byteCnt = inputStream.read(buffer_file);
+                            Log.i(TAG, "run: byteCnt = " + String.valueOf(length));
+                            Log.e(TAG, "run: str3 = " + new String(buffer_file, 0, length));
+
+                            tot += length;
+
+                            sendNotify();
+
+                            save_file(name, buffer_file, length, first);
+
+                            Log.i(TAG, "run: tot = " + String.valueOf(tot));
+                        } catch (Exception e) {
+                            Log.e(TAG, "run6: " + e.getMessage());
+                            connectionLost();
+                            // Start the service over to restart listening mode
+                            ChatController.this.start();
+                            break;
+                        }
+
+                        String[] obj = new String[2];
+                        obj[0] = name;
+                        obj[1] = type;
+
+                        handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
                         break;
-                    }
-
-                    String[] obj = new String[2];
-                    obj[0] = name;
-                    obj[1] = type;
-
-                    handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, obj).sendToTarget();
-                } else {
-                    assert false;
+                    default:
+                        assert false;
+                        break;
                 }
             }
         }
 
         // write to OutputStream
         public synchronized void write(byte[] buffer, int shouldWrite) {
-            Log.d(TAG, "ReadWriteThread.write: " + new String(buffer));
             try {
                 outputStream.write(buffer);
                 if (shouldWrite == 1)
                     handler.obtainMessage(MainActivity.MESSAGE_WRITE, buffer).sendToTarget();
             } catch (IOException e) {
+                Log.e(TAG, "write: " + e.getMessage());
             }
         }
 

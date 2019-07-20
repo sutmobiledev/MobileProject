@@ -1,12 +1,11 @@
 package com.sutmobiledev.bluetoothchat;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,8 +14,8 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.sutmobiledev.bluetoothchat.Activity.MainActivity;
-import com.sutmobiledev.bluetoothchat.R;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -38,10 +37,10 @@ public class RecordAudio extends Fragment implements View.OnClickListener {
 
         View rootView = inflater.inflate(R.layout.audio_record, container, false);
 
-        play = (Button) rootView.findViewById(R.id.play);
-        record = (Button) rootView.findViewById(R.id.record);
-        stop = (Button) rootView.findViewById(R.id.stop);
-        ok = (Button) rootView.findViewById(R.id.ok);
+        play = rootView.findViewById(R.id.play);
+        record = rootView.findViewById(R.id.record);
+        stop = rootView.findViewById(R.id.stop);
+        ok = rootView.findViewById(R.id.ok);
         number = main.getSharedPreferences("post", Context.MODE_PRIVATE).getInt("REC_NUM", 0);
         stop.setEnabled(false);
         play.setEnabled(false);
@@ -104,7 +103,7 @@ public class RecordAudio extends Fragment implements View.OnClickListener {
                 }
                 break;
             case R.id.ok:
-                main.fileManager.sendFile(outputFile, 4);
+                main.fileManager.sendFile(Uri.fromFile(new File(outputFile)), 4);
                 number += 1;
                 main.getSharedPreferences("post", Context.MODE_PRIVATE).edit().putInt("REC_NUM",number).apply();
                 main.fr.setVisibility(View.GONE);

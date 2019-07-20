@@ -53,7 +53,6 @@ import com.sutmobiledev.bluetoothchat.ChooseVideo;
 import com.sutmobiledev.bluetoothchat.Contact;
 import com.sutmobiledev.bluetoothchat.DataBaseHelper;
 import com.sutmobiledev.bluetoothchat.MessageAdapter;
-import com.sutmobiledev.bluetoothchat.MessageViewHolder;
 import com.sutmobiledev.bluetoothchat.R;
 import com.sutmobiledev.bluetoothchat.RecordAudio;
 import com.sutmobiledev.bluetoothchat.User;
@@ -105,7 +104,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public FileManager fileManager;
     public ChooseImage chooseImage;
     public ChooseVideo chooseVideo;
-    public ChatController chatController;
+    public ChatController chatController = null;
     BlankFragment blankFragment;
     public RecordAudio recordAudio;
     public FrameLayout fr;
@@ -153,6 +152,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     }
                     break;
                 case MESSAGE_STATE_CHANGE:
+                    Log.e(TAG, "handleMessage: " + String.valueOf(msg.arg1));
                     switch (msg.arg1) {
                         case ChatController.STATE_CONNECTED:
                             setStatus("Connected to: " + connectingDevice.getName());
@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                         case ChatController.STATE_LISTEN:
                         case ChatController.STATE_NONE:
                             setStatus("Not connected");
+                            btnConnect.setEnabled(true);
                             break;
                     }
                     break;
@@ -178,7 +179,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 //                    save to db message sent by this user
                     message = new com.sutmobiledev.bluetoothchat.Message();
                     message.setName(bluetoothAdapter.getName());
-                    message.setContactId(connectingDevice.getAddress().hashCode());
+                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
                     message.setBelongsToCurrentUser(true);
                     message.setBody(writeMessage);
                     message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
@@ -382,23 +383,27 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onStart() {
+        Log.e(TAG, "onStart: ");
         super.onStart();
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
-        } else {
-            chatController = new ChatController(this, handler);
-        }
+        if (chatController == null) {
+            if (!bluetoothAdapter.isEnabled()) {
+                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
+            } else {
+                chatController = new ChatController(this, handler);
+            }
 
-        fileManager = FileManager.getInstance().init(this, handler);
-        db = DataBaseHelper.getInstance(this);
-        messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
-        chooseImage = new ChooseImage();
-        chooseVideo= new ChooseVideo();
+            fileManager = FileManager.getInstance().init(this, handler);
+            db = DataBaseHelper.getInstance(this);
+            messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
+            chooseImage = new ChooseImage();
+            chooseVideo = new ChooseVideo();
+        }
     }
 
     @Override
     public void onResume() {
+        Log.e(TAG, "onResume: ");
         super.onResume();
 
         if (chatController != null) {
@@ -410,6 +415,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onDestroy() {
+        Log.e(TAG, "onDestroy: ");
         super.onDestroy();
         if (chatController != null)
             chatController.stop();
@@ -426,7 +432,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                             Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
                             String path = chooseImage.saveImage(bitmap);
                             Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                            fileManager.sendFile(path, CHOOSE_IMAGE);
+                            fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -444,7 +450,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                         String selectedVideoPath = chooseVideo.getPath(contentURI);
                         Log.d("path",selectedVideoPath);
                         String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
-                        fileManager.sendFile(path, CHOOSE_VIDEO);
+                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
 
                         // Get the Uri of the selected file
                         //TODO
@@ -453,14 +459,18 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 break;
             case CHOOSE_FILE:
                 if (resultCode == Activity.RESULT_OK) {
-                    // Get the Uri of the selected file
                     Uri uri = data.getData();
-                    Log.d(TAG, "File Uri: " + uri.toString());
+                    if (uri == null) {
+                        Log.e(TAG, "onActivityResult: Not Supported");
+                        Toast.makeText(this, "This file is not supported.", Toast.LENGTH_LONG).show();
+                        break;
+                    }
+
+                    Log.d(TAG, "onActivityResult Uri: " + uri.toString());
                     // Get the path
-                    String path = uri.getPath();
-                    Log.d(TAG, "File Path: " + path);
-                    //TODO
-                    fileManager.sendFile(path, CHOOSE_FILE);
+                    Log.d(TAG, "onActivityResult Path: " + uri.getPath());
+
+                    fileManager.sendFile(uri, CHOOSE_FILE);
                 }
                 break;
 
@@ -510,16 +520,18 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         }
 
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_ID")) {
-            User.USER_ID = getSharedPreferences("post",MODE_PRIVATE).getInt("USER_ID", 0);
-            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
-            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+            User.setUserId(getSharedPreferences("post", MODE_PRIVATE).getInt("USER_ID", 0));
+            User.setProfileAddress(getSharedPreferences("post", MODE_PRIVATE).getString("PROFILE_PIC", null));
+            User.setUser_name(getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
         } else {
-            User.USER_ID = (bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode();
-            getSharedPreferences("post",MODE_PRIVATE).edit().putInt("USER_ID", User.USER_ID).apply();
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
-            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.user_name).apply();
+            User.setUserId((bluetoothAdapter.getName() + String.valueOf(new Random().nextInt())).hashCode());
+            getSharedPreferences("post", MODE_PRIVATE).edit().putInt("USER_ID", User.getUserId()).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
+            User.setUser_name(bluetoothAdapter.getName());
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
         }
-        bluetoothAdapter.setName(User.user_name);
+
+        bluetoothAdapter.setName(User.getUser_name());
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         messageAdapter = new MessageAdapter(this);
         listView = findViewById(R.id.list);
@@ -572,7 +584,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     transaction.addToBackStack(null);
                     transaction.commit();
                     fr.setVisibility(View.VISIBLE);
-
                 }
             }
         });
@@ -590,16 +601,16 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         nameTextView = header.findViewById(R.id.user);
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_NAME")) {
             Log.i("HEREEEEE",getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
-            User.user_name = getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown");
+            User.setUser_name(getSharedPreferences("post", MODE_PRIVATE).getString("USER_NAME", "Unknown"));
         } else {
-            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME",User.user_name).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("USER_NAME", User.getUser_name()).apply();
         }
         if (getSharedPreferences("post",MODE_PRIVATE).contains("PROFILE_PIC")) {
-            User.profileAddress = getSharedPreferences("post",MODE_PRIVATE).getString("PROFILE_PIC",null);
+            User.setProfileAddress(getSharedPreferences("post", MODE_PRIVATE).getString("PROFILE_PIC", null));
         } else {
-            getSharedPreferences("post",MODE_PRIVATE).edit().putString("PROFILE_PIC", User.profileAddress).apply();
+            getSharedPreferences("post", MODE_PRIVATE).edit().putString("PROFILE_PIC", User.getProfileAddress()).apply();
         }
-        nameTextView.setText(User.user_name);
+        nameTextView.setText(User.getUser_name());
         if(User.getProfileAddress()!= null) {
             File folder2 = new File(User.getProfileAddress());
             if (folder2.exists()) {

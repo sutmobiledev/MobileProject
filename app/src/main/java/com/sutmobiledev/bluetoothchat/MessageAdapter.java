@@ -57,7 +57,7 @@ public class MessageAdapter extends BaseAdapter{
         if (message.isBelongsToCurrentUser()) {
             if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.my_message_image, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 File folder = new File(message.getFileAddress());
 //            File   folderpath = new File(folder+File.separator+imagename);
                 if(folder.exists())
@@ -105,11 +105,11 @@ public class MessageAdapter extends BaseAdapter{
         } else {
             if(message.getType() == Message.TYPE_IMAGE){
                 convertView = messageInflater.inflate(R.layout.their_message_image, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
-                    String folderpath1 = folder.getAbsolutePath().toString().trim();
+                    String folderpath1 = folder.getAbsolutePath().trim();
                     imageView.setImageBitmap(BitmapFactory.decodeFile(folderpath1));
                 } else {
                     Log.e("Hereee", "image not exists");
@@ -118,7 +118,7 @@ public class MessageAdapter extends BaseAdapter{
                 holder.avatar = imageView;
                 holder.name = (TextView) convertView.findViewById(R.id.name);
                 holder.name.setText(message.getName());
-                ImageView imageView2 = convertView.findViewById(R.id.imageView2);
+                ImageView imageView2 = (ImageView) convertView.findViewById(R.id.imageView2);
                 if(message.getFileAddress() != null){
                 File folder2 = new File(message.getFileAddress());
                 Log.i("imageee",message.getFileAddress());
@@ -136,8 +136,10 @@ public class MessageAdapter extends BaseAdapter{
                 convertView.setTag(holder);
             }
             else if(message.getType() == Message.TYPE_VIDEO){
+
                 convertView = messageInflater.inflate(R.layout.their_message_video2, null);
                 ImageView imageView = convertView.findViewById(R.id.imageView1);
+
                 if(message.getImageAdd() != null){
                     File folder = new File(message.getImageAdd());
                     if (folder.exists()) {
@@ -163,7 +165,7 @@ public class MessageAdapter extends BaseAdapter{
             }
             else if(message.getType() == Message.TYPE_TEXT){
                 convertView = messageInflater.inflate(R.layout.their_message, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
@@ -182,7 +184,7 @@ public class MessageAdapter extends BaseAdapter{
             }
             else if(message.getType() == Message.TYPE_VOICE){
                 convertView = messageInflater.inflate(R.layout.their_message_voice, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                     File folder = new File(message.getImageAdd());
                     if (folder.exists()) {
@@ -201,7 +203,7 @@ public class MessageAdapter extends BaseAdapter{
             }
             else if(message.getType() == Message.TYPE_FILE){
                 convertView = messageInflater.inflate(R.layout.their_message_file, null);
-                ImageView imageView = convertView.findViewById(R.id.imageView1);
+                ImageView imageView = (ImageView) convertView.findViewById(R.id.imageView1);
                 if(message.getImageAdd() != null){
                 File folder = new File(message.getImageAdd());
                 if (folder.exists()) {
