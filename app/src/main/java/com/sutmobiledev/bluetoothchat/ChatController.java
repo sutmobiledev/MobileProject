@@ -549,7 +549,7 @@ public class ChatController {
                             ChatController.this.start();
                             break;
                         }
-                        int type = Integer.getInteger(new String(buffer_Type, 0, byteCnt));
+                        int type = Integer.parseInt(new String(buffer_Type, 0, byteCnt));
 
                         byte[] buffer_Name = new byte[1024];
                         try {
@@ -575,8 +575,6 @@ public class ChatController {
 
                             if (length > FileManager.BUFFER_SIZE) {
                                 byteCnt = inputStream.read(buffer_file);
-                                Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
-                                Log.e(TAG, "run: str1 = " + new String(buffer_file, 0, byteCnt));
 
                                 tot += byteCnt;
 
@@ -592,8 +590,6 @@ public class ChatController {
                                     buffer_file = new byte[FileManager.BUFFER_SIZE];
 
                                     byteCnt = inputStream.read(buffer_file);
-                                    Log.i(TAG, "run: byteCnt = " + String.valueOf(byteCnt));
-                                    Log.e(TAG, "run: str2 = " + new String(buffer_file, 0, byteCnt));
 
                                     tot += byteCnt;
 
@@ -608,8 +604,6 @@ public class ChatController {
                             buffer_file = new byte[FileManager.BUFFER_SIZE];
 
                             byteCnt = inputStream.read(buffer_file);
-                            Log.i(TAG, "run: byteCnt = " + String.valueOf(length));
-                            Log.e(TAG, "run: str3 = " + new String(buffer_file, 0, length));
 
                             tot += length;
 
@@ -626,7 +620,7 @@ public class ChatController {
                             break;
                         }
 
-                        handler.obtainMessage(MainActivity.MESSAGE_FILE_SEND, type, 0, name).sendToTarget();
+                        handler.obtainMessage(MainActivity.MESSAGE_FILE_RECEIVE, type, 0, name).sendToTarget();
                         break;
                     default:
                         assert false;

@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                     String args1 = (String)msg.obj;
                     message = new com.sutmobiledev.bluetoothchat.Message();
                     message.setName(PEER_USER_NAME);
-                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
+                    message.setContactId(connectingDevice.getAddress().hashCode());
                     message.setBelongsToCurrentUser(false);
                     message.setBody(args1);
                     message.setType(msg.arg1);

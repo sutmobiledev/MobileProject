@@ -27,7 +27,7 @@ public class ChooseImage {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                choosePhotoFromGallary(intent);
+                                choosePhotoFromGallery(intent);
                                 break;
                             case 1:
                                 takePhotoFromCamera(intent);
@@ -38,7 +38,7 @@ public class ChooseImage {
         pictureDialog.show();
     }
 
-    public void choosePhotoFromGallary(AppCompatActivity intent) {
+    public void choosePhotoFromGallery(AppCompatActivity intent) {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 

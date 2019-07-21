@@ -3,7 +3,7 @@ package com.sutmobiledev.bluetoothchat;
 public class User {
     private static int USER_ID = 0;
     private static String profileAddress = null;
-    private static String user_name = new String("Unknown");
+    private static String user_name = "Unknown";
 
     public static void setProfileAddress(String profileAddress) {
         User.profileAddress = profileAddress;

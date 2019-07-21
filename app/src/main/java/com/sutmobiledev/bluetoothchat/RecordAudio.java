@@ -68,7 +68,7 @@ public class RecordAudio extends Fragment implements View.OnClickListener {
         Fragment fragment = null;
         switch (view.getId()) {
             case R.id.record:
-//                main.chooseImage.choosePhotoFromGallary(main);
+//                main.chooseImage.choosePhotoFromGallery(main);
                 number = main.getSharedPreferences("post", Context.MODE_PRIVATE).getInt("REC_NUM", 0);
                 try {
                     mediaRecorder.prepare();
@@ -89,7 +89,7 @@ public class RecordAudio extends Fragment implements View.OnClickListener {
                 stop.setEnabled(false);
                 play.setEnabled(true);
                 Toast.makeText(main.getApplicationContext(),"Audio Recorder Successful",Toast.LENGTH_LONG).show();
-//                main.chooseImage.choosePhotoFromGallary(main);
+//                main.chooseImage.choosePhotoFromGallery(main);
                 break;
             case R.id.play:
                 MediaPlayer mediaPlayer = new MediaPlayer();

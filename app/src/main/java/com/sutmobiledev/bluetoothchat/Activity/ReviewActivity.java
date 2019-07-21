@@ -2,24 +2,19 @@ package com.sutmobiledev.bluetoothchat.Activity;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -123,7 +118,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
         if(User.getProfileAddress()!= null) {
             File folder2 = new File(User.getProfileAddress());
             if (folder2.exists()) {
-                String folderpath3 = folder2.getAbsolutePath().toString().trim();
+                String folderpath3 = folder2.getAbsolutePath().trim();
                 profilePhoto.setImageBitmap(BitmapFactory.decodeFile(folderpath3));
             } else {
                 Log.e("Hereee", "image not exists");
@@ -156,7 +151,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
             startActivity(new Intent(ReviewActivity.this, ChooseActivity.class));
 
         } else if (id == R.id.ChangePhoto) {
-            chooseImage.choosePhotoFromGallary(ReviewActivity.this);
+            chooseImage.choosePhotoFromGallery(ReviewActivity.this);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -167,7 +162,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == this.RESULT_CANCELED) {
+        if (resultCode == RESULT_CANCELED) {
             return;
         }
         if (requestCode == 22) {
@@ -187,7 +182,7 @@ public class ReviewActivity extends AppCompatActivity implements NavigationView.
                 }
             }
 
-        };
+        }
     }
     public static boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
