@@ -105,210 +105,210 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public FrameLayout fr;
     VideoFragment videoFragment;
 
-    private BluetoothDevice connectingDevice;
-    private ArrayAdapter<String> discoveredDevicesAdapter;
-    private Handler handler = new Handler(new Handler.Callback() {
-
-        @Override
-        public boolean handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage: Called:  " + String.valueOf(msg.what));
-            switch (msg.what) {
-                case MESSAGE_PEER_USER_NAME:
-                    PEER_USER_NAME = new String((byte[]) msg.obj, 0, msg.arg1);
-                    Log.i(TAG, "handleMessage: " + PEER_USER_NAME);
-                    break;
-                case MESSAGE_FILE_SEND:
-                    String args = (String)msg.obj;
-
-                    message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(User.getUser_name());
-                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
-                    message.setBelongsToCurrentUser(true);
-                    message.setBody(args);
-                    message.setType(msg.arg1);
-                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/wallpaper/"+args);
-                    db.addMessage(message);
-                    messages.add(message);
-                    messageAdapter.add(message);
-                    break;
-                case MESSAGE_FILE_RECEIVE:
-                    String args1 = (String)msg.obj;
-                    message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(PEER_USER_NAME);
-                    message.setContactId(connectingDevice.getAddress().hashCode());
-                    message.setBelongsToCurrentUser(false);
-                    message.setBody(args1);
-                    message.setType(msg.arg1);
-                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args1);
-                    db.addMessage(message);
-                    messages.add(message);
-                    messageAdapter.add(message);
-                    break;
-                case MESSAGE_NOTIFY:
-                    Log.d(TAG, "handleMessage: Notify Message is received.");
-                    synchronized (MainActivity.lock) {
-                        MainActivity.lock.notify();
-                    }
-                    break;
-                case MESSAGE_STATE_CHANGE:
-                    Log.e(TAG, "handleMessage: " + String.valueOf(msg.arg1));
-                    switch (msg.arg1) {
-                        case ChatController.STATE_CONNECTED:
-                            setStatus("Connected to: " + connectingDevice.getName());
-                            btnConnect.setEnabled(false);
-                            break;
-                        case ChatController.STATE_CONNECTING:
-                            setStatus("Connecting...");
-                            btnConnect.setEnabled(false);
-                            break;
-                        case ChatController.STATE_LISTEN:
-                        case ChatController.STATE_NONE:
-                            setStatus("Not connected");
-                            btnConnect.setEnabled(true);
-                            break;
-                    }
-                    break;
-                case MESSAGE_WRITE:
-                    byte[] writeBuf = (byte[]) msg.obj;
-
-                    String writeMessage = new String(writeBuf);
-                    //TODO
-                    //add image address
-//                    chatMessages.add("Me: " + writeMessage);
-//                    save to db message sent by this user
-                    message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(User.getUser_name());
-                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
-                    message.setBelongsToCurrentUser(true);
-                    message.setBody(writeMessage);
-                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
-                    db.addMessage(message);
-                    messages.add(message);
-                    messageAdapter.add(message);
-//                    chatAdapter.notifyDataSetChanged();
-                    break;
-                case MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    //TODO
-                    //add imageadress
-                    String readMessage = new String(readBuf, 0, msg.arg1);
-                    message = new com.sutmobiledev.bluetoothchat.Message();
-                    message.setName(PEER_USER_NAME);
-                    message.setContactId(connectingDevice.getAddress().hashCode());
-                    message.setBelongsToCurrentUser(false);
-                    message.setBody(readMessage);
-                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
-                    db.addMessage(message);
-                    messages.add(message);
-                    messageAdapter.add(message);
-//                    chatAdapter.notifyDataSetChanged();
-//                    chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
-//                    chatAdapter.notifyDataSetChanged();
-                    break;
-                case MESSAGE_DEVICE_OBJECT:
-                    connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
-
-                    assert connectingDevice != null;
-
-                    int contactId = connectingDevice.getAddress().hashCode();
-                    if (db.firsConnection(contactId)) {
-                        db.addContact(new Contact(contactId, PEER_USER_NAME, "jkaldsjfk"));
-                    } else {
-                        db.deleteContact(contactId);
-                        db.addContact(new Contact(contactId, PEER_USER_NAME, null));
-                    }
-
-                    Toast.makeText(getApplicationContext(), "Connected to " + PEER_USER_NAME,
-                            Toast.LENGTH_SHORT).show();
-                    break;
-                case MESSAGE_TOAST:
-                    Toast.makeText(getApplicationContext(), msg.getData().getString("toast"),
-                            Toast.LENGTH_SHORT).show();
-                    break;
-            }
-            listView.setSelection(listView.getCount() - 1);
-            listView.setAdapter(messageAdapter);
-            return false;
-        }
-    });
-
-    private void showPrinterPickDialog() {
-        dialog = new Dialog(this);
-        dialog.setContentView(R.layout.layout_bluetooth);
-        dialog.setTitle("Bluetooth Devices");
-
-        if (bluetoothAdapter.isDiscovering()) {
-            bluetoothAdapter.cancelDiscovery();
-        }
-        bluetoothAdapter.startDiscovery();
-
-        //Initializing bluetooth adapters
-        ArrayAdapter<String> pairedDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        discoveredDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-
-        //locate listviews and attatch the adapters
-        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
-        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
-        listView.setAdapter(pairedDevicesAdapter);
-        listView2.setAdapter(discoveredDevicesAdapter);
-
-        // Register for broadcasts when a device is discovered
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(discoveryFinishReceiver, filter);
-
-        // Register for broadcasts when discovery has finished
-        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(discoveryFinishReceiver, filter);
-
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
-
-        // If there are paired devices, add each one to the ArrayAdapter
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                pairedDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
-            }
-        } else {
-            pairedDevicesAdapter.add(getString(R.string.none_paired));
-        }
-
-        //Handling listview item click event
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                bluetoothAdapter.cancelDiscovery();
-                String info = ((TextView) view).getText().toString();
-                String address = info.substring(info.length() - 17);
-
-                connectToDevice(address, true);
-                dialog.dismiss();
-            }
-
-        });
-
-        listView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long id) {
-                bluetoothAdapter.cancelDiscovery();
-                String info = ((TextView) view).getText().toString();
-                String address = info.substring(info.length() - 17);
-
-                connectToDevice(address, true);
-                dialog.dismiss();
-            }
-        });
-
-        dialog.findViewById(R.id.cancelButton).setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-        dialog.setCancelable(false);
-        dialog.show();
-    }
+//    private BluetoothDevice connectingDevice;
+//    private ArrayAdapter<String> discoveredDevicesAdapter;
+//    private Handler handler = new Handler(new Handler.Callback() {
+//
+//        @Override
+//        public boolean handleMessage(Message msg) {
+//            Log.d(TAG, "handleMessage: Called:  " + String.valueOf(msg.what));
+//            switch (msg.what) {
+//                case MESSAGE_PEER_USER_NAME:
+//                    PEER_USER_NAME = new String((byte[]) msg.obj, 0, msg.arg1);
+//                    Log.i(TAG, "handleMessage: " + PEER_USER_NAME);
+//                    break;
+//                case MESSAGE_FILE_SEND:
+//                    String args = (String)msg.obj;
+//
+//                    message = new com.sutmobiledev.bluetoothchat.Message();
+//                    message.setName(User.getUser_name());
+//                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
+//                    message.setBelongsToCurrentUser(true);
+//                    message.setBody(args);
+//                    message.setType(msg.arg1);
+//                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/wallpaper/"+args);
+//                    db.addMessage(message);
+//                    messages.add(message);
+//                    messageAdapter.add(message);
+//                    break;
+//                case MESSAGE_FILE_RECEIVE:
+//                    String args1 = (String)msg.obj;
+//                    message = new com.sutmobiledev.bluetoothchat.Message();
+//                    message.setName(PEER_USER_NAME);
+//                    message.setContactId(connectingDevice.getAddress().hashCode());
+//                    message.setBelongsToCurrentUser(false);
+//                    message.setBody(args1);
+//                    message.setType(msg.arg1);
+//                    message.setFileAddress(Environment.getExternalStorageDirectory()+"/BluetoothChat/"+args1);
+//                    db.addMessage(message);
+//                    messages.add(message);
+//                    messageAdapter.add(message);
+//                    break;
+//                case MESSAGE_NOTIFY:
+//                    Log.d(TAG, "handleMessage: Notify Message is received.");
+//                    synchronized (MainActivity.lock) {
+//                        MainActivity.lock.notify();
+//                    }
+//                    break;
+//                case MESSAGE_STATE_CHANGE:
+//                    Log.e(TAG, "handleMessage: " + String.valueOf(msg.arg1));
+//                    switch (msg.arg1) {
+//                        case ChatController.STATE_CONNECTED:
+//                            setStatus("Connected to: " + connectingDevice.getName());
+//                            btnConnect.setEnabled(false);
+//                            break;
+//                        case ChatController.STATE_CONNECTING:
+//                            setStatus("Connecting...");
+//                            btnConnect.setEnabled(false);
+//                            break;
+//                        case ChatController.STATE_LISTEN:
+//                        case ChatController.STATE_NONE:
+//                            setStatus("Not connected");
+//                            btnConnect.setEnabled(true);
+//                            break;
+//                    }
+//                    break;
+//                case MESSAGE_WRITE:
+//                    byte[] writeBuf = (byte[]) msg.obj;
+//
+//                    String writeMessage = new String(writeBuf);
+//                    //TODO
+//                    //add image address
+////                    chatMessages.add("Me: " + writeMessage);
+////                    save to db message sent by this user
+//                    message = new com.sutmobiledev.bluetoothchat.Message();
+//                    message.setName(User.getUser_name());
+//                    message.setContactId(bluetoothAdapter.getAddress().hashCode());
+//                    message.setBelongsToCurrentUser(true);
+//                    message.setBody(writeMessage);
+//                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+//                    db.addMessage(message);
+//                    messages.add(message);
+//                    messageAdapter.add(message);
+////                    chatAdapter.notifyDataSetChanged();
+//                    break;
+//                case MESSAGE_READ:
+//                    byte[] readBuf = (byte[]) msg.obj;
+//                    //TODO
+//                    //add imageadress
+//                    String readMessage = new String(readBuf, 0, msg.arg1);
+//                    message = new com.sutmobiledev.bluetoothchat.Message();
+//                    message.setName(PEER_USER_NAME);
+//                    message.setContactId(connectingDevice.getAddress().hashCode());
+//                    message.setBelongsToCurrentUser(false);
+//                    message.setBody(readMessage);
+//                    message.setType(com.sutmobiledev.bluetoothchat.Message.TYPE_TEXT);
+//                    db.addMessage(message);
+//                    messages.add(message);
+//                    messageAdapter.add(message);
+////                    chatAdapter.notifyDataSetChanged();
+////                    chatMessages.add(connectingDevice.getName() + ":  " + readMessage);
+////                    chatAdapter.notifyDataSetChanged();
+//                    break;
+//                case MESSAGE_DEVICE_OBJECT:
+//                    connectingDevice = msg.getData().getParcelable(DEVICE_OBJECT);
+//
+//                    assert connectingDevice != null;
+//
+//                    int contactId = connectingDevice.getAddress().hashCode();
+//                    if (db.firsConnection(contactId)) {
+//                        db.addContact(new Contact(contactId, PEER_USER_NAME, "jkaldsjfk"));
+//                    } else {
+//                        db.deleteContact(contactId);
+//                        db.addContact(new Contact(contactId, PEER_USER_NAME, null));
+//                    }
+//
+//                    Toast.makeText(getApplicationContext(), "Connected to " + PEER_USER_NAME,
+//                            Toast.LENGTH_SHORT).show();
+//                    break;
+//                case MESSAGE_TOAST:
+//                    Toast.makeText(getApplicationContext(), msg.getData().getString("toast"),
+//                            Toast.LENGTH_SHORT).show();
+//                    break;
+//            }
+//            listView.setSelection(listView.getCount() - 1);
+//            listView.setAdapter(messageAdapter);
+//            return false;
+//        }
+//    });
+//
+//    private void showPrinterPickDialog() {
+//        dialog = new Dialog(this);
+//        dialog.setContentView(R.layout.layout_bluetooth);
+//        dialog.setTitle("Bluetooth Devices");
+//
+//        if (bluetoothAdapter.isDiscovering()) {
+//            bluetoothAdapter.cancelDiscovery();
+//        }
+//        bluetoothAdapter.startDiscovery();
+//
+//        //Initializing bluetooth adapters
+//        ArrayAdapter<String> pairedDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+//        discoveredDevicesAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+//
+//        //locate listviews and attatch the adapters
+//        ListView listView = dialog.findViewById(R.id.pairedDeviceList);
+//        ListView listView2 = dialog.findViewById(R.id.discoveredDeviceList);
+//        listView.setAdapter(pairedDevicesAdapter);
+//        listView2.setAdapter(discoveredDevicesAdapter);
+//
+//        // Register for broadcasts when a device is discovered
+//        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+//        registerReceiver(discoveryFinishReceiver, filter);
+//
+//        // Register for broadcasts when discovery has finished
+//        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+//        registerReceiver(discoveryFinishReceiver, filter);
+//
+//        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+//
+//        // If there are paired devices, add each one to the ArrayAdapter
+//        if (pairedDevices.size() > 0) {
+//            for (BluetoothDevice device : pairedDevices) {
+//                pairedDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
+//            }
+//        } else {
+//            pairedDevicesAdapter.add(getString(R.string.none_paired));
+//        }
+//
+//        //Handling listview item click event
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                bluetoothAdapter.cancelDiscovery();
+//                String info = ((TextView) view).getText().toString();
+//                String address = info.substring(info.length() - 17);
+//
+//                connectToDevice(address, true);
+//                dialog.dismiss();
+//            }
+//
+//        });
+//
+//        listView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int i, long id) {
+//                bluetoothAdapter.cancelDiscovery();
+//                String info = ((TextView) view).getText().toString();
+//                String address = info.substring(info.length() - 17);
+//
+//                connectToDevice(address, true);
+//                dialog.dismiss();
+//            }
+//        });
+//
+//        dialog.findViewById(R.id.cancelButton).setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//            }
+//        });
+//        dialog.setCancelable(false);
+//        dialog.show();
+//    }
 
     private void setStatus(String s) {
         status.setText(s);
@@ -383,25 +383,25 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         }
     }
 
-    @Override
-    public void onStart() {
-        Log.e(TAG, "onStart: ");
-        super.onStart();
-        if (chatController == null) {
-            if (!bluetoothAdapter.isEnabled()) {
-                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
-            } else {
-                chatController = new ChatController(this, handler);
-            }
-
-            fileManager = FileManager.getInstance().init(this, handler);
-            db = DataBaseHelper.getInstance(this);
-            messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
-            chooseImage = new ChooseImage();
-            chooseVideo = new ChooseVideo();
-        }
-    }
+//    @Override
+//    public void onStart() {
+//        Log.e(TAG, "onStart: ");
+//        super.onStart();
+//        if (chatController == null) {
+//            if (!bluetoothAdapter.isEnabled()) {
+//                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
+//            } else {
+//                chatController = new ChatController(this, handler);
+//            }
+//
+//            fileManager = FileManager.getInstance().init(this, handler);
+//            db = DataBaseHelper.getInstance(this);
+//            messages = new ArrayList<com.sutmobiledev.bluetoothchat.Message>();
+//            chooseImage = new ChooseImage();
+//            chooseVideo = new ChooseVideo();
+//        }
+//    }
 
     @Override
     public void onResume() {
@@ -423,106 +423,106 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             chatController.stop();
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode % 10) {
-            case CHOOSE_IMAGE:
-                if (resultCode == Activity.RESULT_OK) {
-                    if (requestCode / 10 == 2) {
-                        if (data != null) {
-                            Uri contentURI = data.getData();
-                            try {
-                                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-                                String path = chooseImage.saveImage(bitmap);
-                                Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                                fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        switch (requestCode % 10) {
+//            case CHOOSE_IMAGE:
+//                if (resultCode == Activity.RESULT_OK) {
+//                    if (requestCode / 10 == 2) {
+//                        if (data != null) {
+//                            Uri contentURI = data.getData();
+//                            try {
+//                                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+//                                String path = chooseImage.saveImage(bitmap);
+//                                Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+//                                fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                                Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+//                            }
+//                            // Get the Uri of the selected file
+//                            //TODO
+//                        }
+//                    }
+//                    if (requestCode / 10 == 1) {
+//                        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+//                        String path = chooseImage.saveImage(thumbnail);
+//                        Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
+//                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
+//                    }
+//                }
+//                break;
+//            case CHOOSE_VIDEO:
+//                if (resultCode == Activity.RESULT_OK) {
+//                    if (requestCode / 10 == 2) {
+//                        if (data != null) {
+//                            Uri contentURI = data.getData();
+//                            String selectedVideoPath = chooseVideo.getPath(contentURI);
+//                            Log.d("path", selectedVideoPath);
+//                            String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
+//                            fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
+//
+//                            // Get the Uri of the selected file
+//                            //TODO
+//                        }
+//                    }
+//                    if (requestCode / 10 == 1) {
+//                        Uri contentURI = data.getData();
+//                        String recordedVideoPath = chooseVideo.getPath(contentURI);
+//                        Log.d("frrr", recordedVideoPath);
+//                        String path = chooseVideo.saveVideoToInternalStorage(recordedVideoPath);
+//                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
+//                    }
+//                }
+//                break;
+//            case CHOOSE_FILE:
+//                if (resultCode == Activity.RESULT_OK) {
+//                    Uri uri = data.getData();
+//                    if (uri == null) {
+//                        Log.e(TAG, "onActivityResult: Not Supported");
+//                        Toast.makeText(this, "This file is not supported.", Toast.LENGTH_LONG).show();
+//                        break;
+//                    }
+//
+//                    Log.d(TAG, "onActivityResult Uri: " + uri.toString());
+//                    // Get the path
+//                    Log.d(TAG, "onActivityResult Path: " + uri.getPath());
+//
+//                    fileManager.sendFile(uri, CHOOSE_FILE);
+//                }
+//                break;
+//
+//            case REQUEST_ENABLE_BLUETOOTH:
+//                if (resultCode == Activity.RESULT_OK) {
+//                    chatController = new ChatController(this, handler);
+//                } else {
+//                    Toast.makeText(this, "Bluetooth still disabled, turn off application!", Toast.LENGTH_SHORT).show();
+//                    finish();
+//                }
+//        }
+//
+//        super.onActivityResult(requestCode, resultCode, data);
+//        fr.setVisibility(View.GONE);
+//    }
 
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
-                            }
-                            // Get the Uri of the selected file
-                            //TODO
-                        }
-                    }
-                    if (requestCode / 10 == 1) {
-                        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-                        String path = chooseImage.saveImage(thumbnail);
-                        Toast.makeText(MainActivity.this, "Image Saved!", Toast.LENGTH_SHORT).show();
-                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_IMAGE);
-                    }
-                }
-                break;
-            case CHOOSE_VIDEO:
-                if (resultCode == Activity.RESULT_OK) {
-                    if (requestCode / 10 == 2) {
-                        if (data != null) {
-                            Uri contentURI = data.getData();
-                            String selectedVideoPath = chooseVideo.getPath(contentURI);
-                            Log.d("path", selectedVideoPath);
-                            String path = chooseVideo.saveVideoToInternalStorage(selectedVideoPath);
-                            fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
-
-                            // Get the Uri of the selected file
-                            //TODO
-                        }
-                    }
-                    if (requestCode / 10 == 1) {
-                        Uri contentURI = data.getData();
-                        String recordedVideoPath = chooseVideo.getPath(contentURI);
-                        Log.d("frrr", recordedVideoPath);
-                        String path = chooseVideo.saveVideoToInternalStorage(recordedVideoPath);
-                        fileManager.sendFile(Uri.fromFile(new File(path)), CHOOSE_VIDEO);
-                    }
-                }
-                break;
-            case CHOOSE_FILE:
-                if (resultCode == Activity.RESULT_OK) {
-                    Uri uri = data.getData();
-                    if (uri == null) {
-                        Log.e(TAG, "onActivityResult: Not Supported");
-                        Toast.makeText(this, "This file is not supported.", Toast.LENGTH_LONG).show();
-                        break;
-                    }
-
-                    Log.d(TAG, "onActivityResult Uri: " + uri.toString());
-                    // Get the path
-                    Log.d(TAG, "onActivityResult Path: " + uri.getPath());
-
-                    fileManager.sendFile(uri, CHOOSE_FILE);
-                }
-                break;
-
-            case REQUEST_ENABLE_BLUETOOTH:
-                if (resultCode == Activity.RESULT_OK) {
-                    chatController = new ChatController(this, handler);
-                } else {
-                    Toast.makeText(this, "Bluetooth still disabled, turn off application!", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
-        fr.setVisibility(View.GONE);
-    }
-
-    private final BroadcastReceiver discoveryFinishReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    discoveredDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
-                }
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                if (discoveredDevicesAdapter.getCount() == 0) {
-                    discoveredDevicesAdapter.add(getString(R.string.none_found));
-                }
-            }
-        }
-    };
+//    private final BroadcastReceiver discoveryFinishReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            String action = intent.getAction();
+//
+//            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+//                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+//                    discoveredDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
+//                }
+//            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+//                if (discoveredDevicesAdapter.getCount() == 0) {
+//                    discoveredDevicesAdapter.add(getString(R.string.none_found));
+//                }
+//            }
+//        }
+//    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -532,11 +532,11 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         findViewsByIds();
 
         //check device support bluetooth or not
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
+//        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//        if (bluetoothAdapter == null) {
+//            Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
+//            finish();
+//        }
 
         if (getSharedPreferences("post",MODE_PRIVATE).contains("USER_ID")) {
             User.setUserId(getSharedPreferences("post", MODE_PRIVATE).getInt("USER_ID", 0));
@@ -556,12 +556,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         listView.setSelection(listView.getCount() - 1);
         listView.setAdapter(messageAdapter);
 //        show bluetooth devices dialog when click connect button
-        btnConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showPrinterPickDialog();
-            }
-        });
+//        btnConnect.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                showPrinterPickDialog();
+//            }
+//        });
 
         //set chat adapter
 //        chatMessages = new ArrayList<String>();
